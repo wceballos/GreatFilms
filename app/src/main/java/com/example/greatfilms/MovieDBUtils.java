@@ -1,54 +1,42 @@
 package com.example.greatfilms;
 
 import android.net.Uri;
-import android.os.AsyncTask;
-import android.util.JsonWriter;
 import android.util.Log;
 
-import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.json.JSONStringer;
 
 import java.io.IOException;
-import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import okhttp3.Call;
-import okhttp3.Callback;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
 public class MovieDBUtils {
-    final static String API_BASE_URL = "https://api.themoviedb.org/3";
+    final static String API_BASE_URL = "https://api.themoviedb.org/3/movie";
     final static String POSTER_BASE_URL = "https://image.tmdb.org/t/p/";
     final static String POSTER_SIZE = "w500";
 
-    // Paths
-    final static String DATA_PATH_DISCOVER = "discover/movie";
-
     // Query parameters
     final static String QUERY_PARAM_API_KEY = "api_key";
-    final static String QUERY_PARAM_SORT_BY = "sort_by";
 
     // Sorting options
-    final static String SORT_POPULARITY_DESC = "popularity.desc";
-    final static String SORT_RATINGS_DESC = "vote_count.desc";
+    final static String SORT_RATINGS = "top_rated";
+    final static String SORT_POPULARITY = "popular";
+
 
     public static JSONObject getMovieDataJson(String apiKey, String sortOption) {
-        if (sortOption.equals(SORT_RATINGS_DESC)) {
-            sortOption = SORT_RATINGS_DESC;
-        } else { // Default
-            sortOption = SORT_POPULARITY_DESC;
+        if (!sortOption.equals(SORT_RATINGS) && !sortOption.equals(SORT_POPULARITY)) {
+            // Default sort setting
+            sortOption = SORT_POPULARITY;
         }
 
         Uri apiRequestUri = Uri.parse(API_BASE_URL)
                 .buildUpon()
-                .appendEncodedPath(DATA_PATH_DISCOVER)
+                .appendEncodedPath(sortOption)
                 .appendQueryParameter(QUERY_PARAM_API_KEY, apiKey)
-                .appendQueryParameter(QUERY_PARAM_SORT_BY, sortOption)
                 .build();
         Log.d("URL", "api request url: " + apiRequestUri.toString());
 
@@ -71,8 +59,6 @@ public class MovieDBUtils {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-
 
         return responseJSON;
     }

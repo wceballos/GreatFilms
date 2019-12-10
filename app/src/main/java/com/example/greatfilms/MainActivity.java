@@ -33,7 +33,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
     ProgressBar mLoadingIndicator;
     MovieAdapter mMovieAdapter;
 
-    String mSortSetting = MovieDBUtils.SORT_RATINGS_DESC;
+    String mSortSetting = MovieDBUtils.SORT_RATINGS;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,12 +71,12 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         switch(id) {
             case R.id.sort_popularity:
                 mMovieAdapter.setMovieData(null);
-                mSortSetting = MovieDBUtils.SORT_POPULARITY_DESC;
+                mSortSetting = MovieDBUtils.SORT_POPULARITY;
                 loadMovieGrid(mSortSetting);
                 break;
             case R.id.sort_ratings:
                 mMovieAdapter.setMovieData(null);
-                mSortSetting = MovieDBUtils.SORT_RATINGS_DESC;
+                mSortSetting = MovieDBUtils.SORT_RATINGS;
                 loadMovieGrid(mSortSetting);
                 break;
         }
