@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Great Films</string>
+
+    <!-- Movie details -->
+    <string name="default_title">Title not found</string>
+    <string name="default_release">No release date</string>
+    <string name="default_overview">Could not load overview</string>
+</resources>
