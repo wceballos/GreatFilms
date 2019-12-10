@@ -6,16 +6,16 @@
 
     <item
         android:id="@+id/action_sort"
-        android:title="Sort"
+        android:title="@string/sort_title"
         app:showAsAction="always">
 
         <menu>
             <item
                 android:id="@+id/sort_popularity"
-                android:title="By Popularity"/>
+                android:title="@string/by_popularity"/>
             <item
                 android:id="@+id/sort_ratings"
-                android:title="By Ratings"/>
+                android:title="@string/by_ratings"/>
         </menu>
 
     </item>

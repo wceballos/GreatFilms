@@ -12,7 +12,7 @@
         android:id="@+id/iv_movie_poster"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:contentDescription="Movie Poster"
+        android:contentDescription="@string/movie_poster_description"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 

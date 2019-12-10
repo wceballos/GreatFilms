@@ -7,7 +7,7 @@
         android:id="@+id/iv_movie_poster"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:contentDescription="Movie Poster"
+        android:contentDescription="@string/movie_poster_description"
         android:adjustViewBounds="true"
         android:scaleType="fitCenter"
         android:padding="1dp"/>
