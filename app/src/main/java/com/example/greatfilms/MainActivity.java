@@ -1,15 +1,23 @@
 package com.example.greatfilms;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.telephony.AvailableNetworkInfo;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -113,9 +121,23 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         }
     }
 
+    private boolean isNetworkAvailable() {
+        ConnectivityManager cm =
+                (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        if(cm.getActiveNetwork() == null) {
+            return false;
+        }
+        return true;
+    }
+
     private void loadMovieGrid(String sortMethod) {
         showMovieGridView();
-        new FetchMovieData().execute(sortMethod);
+        if(isNetworkAvailable()) {
+            new FetchMovieData().execute(sortMethod);
+        }
+        else {
+            makeText(getApplicationContext(), "No Internet", Toast.LENGTH_LONG).show();
+        }
     }
 
     private void showMovieGridView() {

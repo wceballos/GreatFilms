@@ -3,6 +3,7 @@
     package="com.example.greatfilms">
     <!-- This permission is necessary in order to perform network access. -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
         android:allowBackup="true"
