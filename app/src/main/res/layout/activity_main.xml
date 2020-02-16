@@ -11,7 +11,7 @@
         android:id="@+id/rv_movies"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="2dp"/>
+        android:layout_margin="@dimen/moviePosterGridMargin"/>
 
     <ProgressBar
         android:id="@+id/pb_loading_indicator"

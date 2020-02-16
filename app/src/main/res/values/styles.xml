@@ -8,4 +8,33 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+    <style name="movieDetailPoster">
+        <item name="android:layout_width">@dimen/poster_width</item>
+        <item name="android:layout_height">@dimen/poster_height</item>
+    </style>
+
+    <!-- Movie details activity text styles -->
+    <style name="primaryText" parent="TextAppearance.AppCompat">
+        <item name="android:fontFamily">sans-serif</item>
+    </style>
+
+    <style name="secondaryText" parent="TextAppearance.AppCompat.Body1">
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:textColor">@color/colorTextLight</item>
+    </style>
+
+    <style name="primaryText.movieTitleText">
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:textSize">30sp</item>
+    </style>
+    <style name="primaryText.movieRelease">
+        <item name="android:textColor">@color/colorTextLight</item>
+        <item name="android:textSize">20sp</item>
+    </style>
+    <style name="primaryText.movieVotes">
+        <item name="android:textColor">@color/colorTextLight</item>
+        <item name="android:textSize">20sp</item>
+    </style>
+
 </resources>

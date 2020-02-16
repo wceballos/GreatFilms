@@ -124,9 +124,9 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
     private boolean isNetworkAvailable() {
         ConnectivityManager cm =
                 (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        if(cm.getActiveNetwork() == null) {
+        /*if(cm.getActiveNetwork() == null) {
             return false;
-        }
+        }*/
         return true;
     }
 

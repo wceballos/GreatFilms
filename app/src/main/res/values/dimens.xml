@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Movie details activity poster dimensions -->
+    <dimen name="poster_width">150dp</dimen>
+    <dimen name="poster_height">225dp</dimen>
+
+    <!-- Margins to the left and right edges of the user's screen -->
+    <dimen name="viewportHorizontalMargin">8dp</dimen>
+
+    <!-- Margin for vertical spacing between views on the screen -->
+    <dimen name="contentVerticalMargin">16dp</dimen>
+
+    <!-- Margin between the poster and the views to the right of the poster in activity_movie_detail -->
+    <dimen name="viewNextToPosterMargin">8dp</dimen>
+
+    <!-- Elevation of views in activity_movie_detail -->
+    <dimen name="viewElevation">8dp</dimen>
+
+    <!-- The banner that holds the text view of the movie title in activity_movie_detail -->
+    <dimen name="movieTitleBannerHeight">120dp</dimen>
+
+    <!-- Margin between posters in the grid recycler view -->
+    <dimen name="moviePosterGridMargin">2dp</dimen>
+
+</resources>
