@@ -54,7 +54,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         /* To do a grid view for the recycler, I got help from:
          * https://stackoverflow.com/questions/40587168/simple-android-grid-example-using-recyclerview-with-gridlayoutmanager-like-the
          */
-        int numberOfColumns = 3;
+        int numberOfColumns = getResources().getInteger(R.integer.moviePosterColumns);
         GridLayoutManager gridLayoutManager = new GridLayoutManager(this, numberOfColumns);
         mMovieRecycler.setLayoutManager(gridLayoutManager);
         //mMovieRecycler.setLayoutManager(new GridLayoutManager(this, numberOfColumns));

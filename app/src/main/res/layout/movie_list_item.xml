@@ -9,7 +9,6 @@
         android:layout_height="wrap_content"
         android:contentDescription="@string/movie_poster_description"
         android:adjustViewBounds="true"
-        android:scaleType="fitCenter"
-        android:padding="1dp"/>
+        android:scaleType="fitCenter"/>
 
 </FrameLayout>

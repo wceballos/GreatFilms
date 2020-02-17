@@ -1,6 +1,7 @@
 package com.example.greatfilms;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -24,9 +25,13 @@ public class MovieDetailActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_movie_detail);
+        androidx.appcompat.widget.Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
 
         mPosterDisplay = (ImageView) findViewById(R.id.iv_movie_poster);
-        mTitleDisplay = (TextView) findViewById(R.id.tv_movie_title);
+        //mTitleDisplay = (TextView) findViewById(R.id.tv_movie_title);
         mReleaseDisplay = (TextView) findViewById(R.id.tv_movie_release);
         mVoteDisplay = (TextView) findViewById(R.id.tv_movie_vote);
         mOverviewDisplay = (TextView) findViewById(R.id.tv_movie_overview);
@@ -35,7 +40,8 @@ public class MovieDetailActivity extends AppCompatActivity {
 
         if(intent != null) {
             if(intent.hasExtra("TITLE")) {
-                mTitleDisplay.setText(intent.getStringExtra("TITLE"));
+                //mTitleDisplay.setText(intent.getStringExtra("TITLE"));
+                setTitle(intent.getStringExtra("TITLE"));
             }
             if(intent.hasExtra("RELEASE")) {
                 mReleaseDisplay.setText(intent.getStringExtra("RELEASE").substring(0,4));

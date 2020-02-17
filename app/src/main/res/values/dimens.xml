@@ -7,20 +7,21 @@
 
     <!-- Margins to the left and right edges of the user's screen -->
     <dimen name="viewportHorizontalMargin">8dp</dimen>
+    <dimen name="viewportHorizontalMarginDouble">16dp</dimen>
 
     <!-- Margin for vertical spacing between views on the screen -->
     <dimen name="contentVerticalMargin">16dp</dimen>
 
     <!-- Margin between the poster and the views to the right of the poster in activity_movie_detail -->
-    <dimen name="viewNextToPosterMargin">8dp</dimen>
-
-    <!-- Elevation of views in activity_movie_detail -->
-    <dimen name="viewElevation">8dp</dimen>
+    <dimen name="viewNextToPosterMargin">32dp</dimen>
 
     <!-- The banner that holds the text view of the movie title in activity_movie_detail -->
-    <dimen name="movieTitleBannerHeight">120dp</dimen>
+    <dimen name="appBarHeight">180dp</dimen>
 
-    <!-- Margin between posters in the grid recycler view -->
-    <dimen name="moviePosterGridMargin">2dp</dimen>
+    <dimen name="trailerButtonHeight">40dp</dimen>
+    <dimen name="trailerButtonWidth">120dp</dimen>
+    <dimen name="buttonTextSize">14sp</dimen>
+
+    <dimen name="fab_margin">16dp</dimen>
 
 </resources>

@@ -14,5 +14,17 @@
     <string name="by_popularity">By Popularity</string>
 
 
-    <string name="sample_movie_description">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam ac tempus lorem, vitae sollicitudin enim. Quisque placerat ligula lorem, accumsan vulputate eros vestibulum quis. Nullam fermentum non odio et pharetra. Aliquam tincidunt congue lacus a facilisis. Curabitur felis mi, tristique eget lacinia id, fringilla eget justo. Ut euismod tincidunt risus.</string>
+    <string name="movie_overview_label">SYNOPSIS</string>
+    <string name="lorem_ipsum_movie_overview">
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam ac tempus lorem, vitae"
+        "sollicitudin enim. Quisque placerat ligula lorem, accumsan vulputate eros vestibulum quis."
+        "Nullam fermentum non odio et pharetra. Aliquam tincidunt congue lacus a facilisis."
+        "Curabitur felis mi, tristique eget lacinia id, fringilla eget justo. Ut euismod tincidunt"
+        "risus."
+    </string>
+
+    <string name="button_trailer1">Trailer 1</string>
+    <string name="button_trailer2">Trailer 2</string>
+    <string name="button_mark_favorite">Favorite</string>
+
 </resources>
