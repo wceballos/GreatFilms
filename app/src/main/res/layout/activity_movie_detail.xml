@@ -87,6 +87,7 @@
             <Button
                 android:id="@+id/btn_trailer1"
                 style="@style/TrailerButton"
+                android:visibility="invisible"
                 android:layout_marginTop="@dimen/contentVerticalMargin"
                 android:text="@string/button_trailer1"
                 android:drawableStart="@android:drawable/ic_media_play"
@@ -96,6 +97,7 @@
             <Button
                 android:id="@+id/btn_trailer2"
                 style="@style/TrailerButton"
+                android:visibility="invisible"
                 android:layout_marginTop="@dimen/contentVerticalMargin"
                 android:text="@string/button_trailer2"
                 android:drawableStart="@android:drawable/ic_media_play"

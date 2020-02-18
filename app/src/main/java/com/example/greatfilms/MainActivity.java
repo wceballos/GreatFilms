@@ -1,23 +1,16 @@
 package com.example.greatfilms;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.ConnectivityManager;
-import android.net.Network;
-import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.telephony.AvailableNetworkInfo;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -102,6 +95,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
             intentToStartDetailActivity.putExtra("RELEASE", movie.getString("release_date"));
             intentToStartDetailActivity.putExtra("OVERVIEW", movie.getString("overview"));
             intentToStartDetailActivity.putExtra("VOTE", movie.getString("vote_average"));
+            intentToStartDetailActivity.putExtra("ID", movie.getInt("id"));
         } catch (JSONException e) {
             e.printStackTrace();
         }

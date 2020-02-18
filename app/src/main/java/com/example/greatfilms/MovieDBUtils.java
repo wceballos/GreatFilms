@@ -3,12 +3,14 @@ package com.example.greatfilms;
 import android.net.Uri;
 import android.util.Log;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -19,6 +21,10 @@ public class MovieDBUtils {
     final static String POSTER_BASE_URL = "https://image.tmdb.org/t/p/";
     final static String POSTER_SIZE = "w500";
 
+    // Youtube
+    final static String YT_BASE_URL = "https://www.youtube.com/watch";
+    final static String QUERY_PARAM_YT_VIDEO = "v";
+
     // Query parameters
     final static String QUERY_PARAM_API_KEY = "api_key";
 
@@ -26,8 +32,10 @@ public class MovieDBUtils {
     final static String SORT_RATINGS = "top_rated";
     final static String SORT_POPULARITY = "popular";
 
+    static String apiKey;
 
     public static JSONObject getMovieDataJson(String apiKey, String sortOption) {
+        MovieDBUtils.apiKey = apiKey;
         if (!sortOption.equals(SORT_RATINGS) && !sortOption.equals(SORT_POPULARITY)) {
             // Default sort setting
             sortOption = SORT_POPULARITY;
@@ -71,6 +79,53 @@ public class MovieDBUtils {
                 .build();
         Log.d("URL", "poster url: " + moviePosterUri.toString());
         return moviePosterUri;
+    }
+
+    public static ArrayList<Uri> getMovieTrailerUris(int movieID) {
+        ArrayList<Uri> trailerUriList = new ArrayList<>();
+
+        Uri apiRequestUri = Uri.parse(API_BASE_URL)
+                .buildUpon()
+                .appendPath(Integer.toString(movieID))
+                .appendPath("videos")
+                .appendQueryParameter(QUERY_PARAM_API_KEY, apiKey)
+                .build();
+        Log.d("URL", "api movie trailer request url: " + apiRequestUri.toString());
+
+        URL url = null;
+        try {
+            url = new URL(apiRequestUri.toString());
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            String responseString = getHttpResponseBody(url);
+            try {
+                JSONObject responseJSON = new JSONObject(responseString);
+                JSONArray resultsJsonArray = responseJSON.getJSONArray("results");
+                for(int i = 0; i < resultsJsonArray.length(); i++) {
+                    JSONObject resultJson = resultsJsonArray.getJSONObject(i);
+                    String site = resultJson.getString("site");
+                    String type = resultJson.getString("type");
+                    String key  = resultJson.getString("key");
+                    if(site.equals("YouTube") && type.equals("Trailer")) {
+                        Uri trailerUri = Uri.parse(YT_BASE_URL)
+                                .buildUpon()
+                                .appendQueryParameter(QUERY_PARAM_YT_VIDEO, key)
+                                .build();
+                        Log.d("URL", "trailer url created: " + trailerUri.toString());
+                        trailerUriList.add(trailerUri);
+                    }
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return trailerUriList;
     }
 
     /**
