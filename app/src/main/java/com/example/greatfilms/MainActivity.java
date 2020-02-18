@@ -89,12 +89,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         Context context = this;
         Class destinationClass = MovieDetailActivity.class;
         Intent intentToStartDetailActivity = new Intent(context, destinationClass);
-        // TODO: instead of passing all of these movie details, pass the json object in the intent
         try {
-            intentToStartDetailActivity.putExtra("TITLE", movie.getString("title"));
-            intentToStartDetailActivity.putExtra("RELEASE", movie.getString("release_date"));
-            intentToStartDetailActivity.putExtra("OVERVIEW", movie.getString("overview"));
-            intentToStartDetailActivity.putExtra("VOTE", movie.getString("vote_average"));
             intentToStartDetailActivity.putExtra("ID", movie.getInt("id"));
         } catch (JSONException e) {
             e.printStackTrace();
@@ -127,7 +122,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
     private void loadMovieGrid(String sortMethod) {
         showMovieGridView();
         if(isNetworkAvailable()) {
-            new FetchMovieData().execute(sortMethod);
+            new FetchSortedMovies().execute(sortMethod);
         }
         else {
             makeText(getApplicationContext(), "No Internet", Toast.LENGTH_LONG).show();
@@ -138,7 +133,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         mMovieRecycler.setVisibility(View.VISIBLE);
     }
 
-    public class FetchMovieData extends AsyncTask<String, Void, JSONObject> {
+    public class FetchSortedMovies extends AsyncTask<String, Void, JSONObject> {
 
         @Override
         protected void onPreExecute() {
@@ -148,10 +143,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
 
         @Override
         protected JSONObject doInBackground(String... sortOption) {
-            JSONObject moviesJSON =
-                    MovieDBUtils.getMovieDataJson(API_KEY, sortOption[0]);
-
-            return moviesJSON;
+            return MovieDBUtils.getSortedMoviesJson(API_KEY, sortOption[0]);
         }
 
         @Override

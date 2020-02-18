@@ -38,6 +38,7 @@
 
     <style name="MovieDetailsTextAppearance.Runtime">
         <item name="android:textStyle">italic</item>
+        <item name="android:textSize">16sp</item>
     </style>
 
     <style name="MovieDetailsTextAppearance.Vote">
@@ -46,6 +47,11 @@
 
     <style name="MovieDetailsTextAppearance.Label">
         <item name="android:textSize">12sp</item>
+    </style>
+
+    <style name="MovieDetailsTextAppearance.NoTrailers">
+        <item name="android:textSize">12sp</item>
+        <item name="android:textStyle">italic</item>
     </style>
 
 

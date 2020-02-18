@@ -2,12 +2,11 @@ package com.example.greatfilms;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.media.Image;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -17,10 +16,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 
@@ -29,10 +26,11 @@ import static android.widget.Toast.makeText;
 public class MovieDetailActivity extends AppCompatActivity {
 
     private ImageView mPosterDisplay;
-    private TextView mTitleDisplay;
     private TextView mReleaseDisplay;
+    private TextView mRuntimeDisplay;
     private TextView mVoteDisplay;
     private TextView mOverviewDisplay;
+    private TextView mNoTrailers;
     private Button mButtonTrailer1;
     private Button mButtonTrailer2;
 
@@ -45,32 +43,18 @@ public class MovieDetailActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
 
-        mPosterDisplay = (ImageView) findViewById(R.id.iv_movie_poster);
-        //mTitleDisplay = (TextView) findViewById(R.id.tv_movie_title);
-        mReleaseDisplay = (TextView) findViewById(R.id.tv_movie_release);
-        mVoteDisplay = (TextView) findViewById(R.id.tv_movie_vote);
-        mOverviewDisplay = (TextView) findViewById(R.id.tv_movie_overview);
-        mButtonTrailer1 = (Button) findViewById(R.id.btn_trailer1);
-        mButtonTrailer2 = (Button) findViewById(R.id.btn_trailer2);
+        mPosterDisplay   = (ImageView) findViewById(R.id.iv_movie_poster);
+        mReleaseDisplay  = (TextView)  findViewById(R.id.tv_movie_release);
+        mRuntimeDisplay  = (TextView)  findViewById(R.id.tv_movie_runtime);
+        mVoteDisplay     = (TextView)  findViewById(R.id.tv_movie_vote);
+        mOverviewDisplay = (TextView)  findViewById(R.id.tv_movie_overview);
+        mNoTrailers      = (TextView)  findViewById(R.id.tv_no_trailers);
+        mButtonTrailer1  = (Button)    findViewById(R.id.btn_trailer1);
+        mButtonTrailer2  = (Button)    findViewById(R.id.btn_trailer2);
 
         Intent intent = getIntent();
 
         if(intent != null) {
-            if(intent.hasExtra("TITLE")) {
-                //mTitleDisplay.setText(intent.getStringExtra("TITLE"));
-                setTitle(intent.getStringExtra("TITLE"));
-            }
-            if(intent.hasExtra("RELEASE")) {
-                mReleaseDisplay.setText(intent.getStringExtra("RELEASE").substring(0,4));
-            }
-            if(intent.hasExtra("VOTE")) {
-                String vote = intent.getStringExtra("VOTE");
-                vote += "/10";
-                mVoteDisplay.setText(vote);
-            }
-            if(intent.hasExtra("OVERVIEW")) {
-                mOverviewDisplay.setText(intent.getStringExtra("OVERVIEW"));
-            }
             if(intent.hasExtra("POSTER")) {
                 int imageSize = intent.getByteArrayExtra("POSTER").length;
                 Bitmap posterBitmap = BitmapFactory.decodeByteArray(intent.getByteArrayExtra("POSTER"),0, imageSize);
@@ -78,7 +62,46 @@ public class MovieDetailActivity extends AppCompatActivity {
             }
             if(intent.hasExtra("ID")) {
                 int movieID = intent.getIntExtra("ID", 0);
+                new FetchMovieDetails().execute(movieID);
                 new FetchMovieTrailers().execute(movieID);
+            }
+        }
+    }
+
+    public class FetchMovieDetails extends AsyncTask<Integer, Void, JSONObject> {
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            //mLoadingIndicator.setVisibility(View.VISIBLE);
+        }
+
+        @Override
+        protected JSONObject doInBackground(Integer... movieID) {
+            return MovieDBUtils.getMovieDetailsJson(movieID[0]);
+        }
+
+        @Override
+        protected void onPostExecute(JSONObject movieDetailsJson) {
+            super.onPostExecute(movieDetailsJson);
+            //mLoadingIndicator.setVisibility(View.INVISIBLE);
+            if(movieDetailsJson == null) {
+                String toastMsg = "Failed to load details";
+                makeText(getApplicationContext(), toastMsg, Toast.LENGTH_LONG).show();
+                return;
+            }
+
+            try {
+                setTitle(movieDetailsJson.getString("title"));
+                String releaseYear = movieDetailsJson.getString("release_date").substring(0,4);
+                mReleaseDisplay.setText(releaseYear);
+                String runtime = getString(R.string.movie_runtime, movieDetailsJson.getString("runtime"));
+                mRuntimeDisplay.setText(runtime);
+                String vote = getString(R.string.movie_vote, movieDetailsJson.getString("vote_average"));
+                mVoteDisplay.setText(vote);
+                mOverviewDisplay.setText(movieDetailsJson.getString("overview"));
+            } catch (JSONException e) {
+                e.printStackTrace();
             }
         }
     }
@@ -92,7 +115,7 @@ public class MovieDetailActivity extends AppCompatActivity {
 
         @Override
         protected ArrayList<Uri> doInBackground(Integer... movieID) {
-            return MovieDBUtils.getMovieTrailerUris(movieID[0]);
+            return MovieDBUtils.getMovieTrailerUriList(movieID[0]);
         }
 
         @Override
@@ -118,13 +141,18 @@ public class MovieDetailActivity extends AppCompatActivity {
                     }
                 }
             };
-            if(movieTrailerUris.size() >= 1) {
-                mButtonTrailer1.setVisibility(View.VISIBLE);
-                mButtonTrailer1.setOnClickListener(trailerButtonClickListener);
+            if(movieTrailerUris.size() == 0) {
+                mNoTrailers.setVisibility(View.VISIBLE);
             }
-            if(movieTrailerUris.size() >= 2) {
-                mButtonTrailer2.setVisibility(View.VISIBLE);
-                mButtonTrailer2.setOnClickListener(trailerButtonClickListener);
+            else {
+                if(movieTrailerUris.size() >= 1) {
+                    mButtonTrailer1.setVisibility(View.VISIBLE);
+                    mButtonTrailer1.setOnClickListener(trailerButtonClickListener);
+                }
+                if(movieTrailerUris.size() >= 2) {
+                    mButtonTrailer2.setVisibility(View.VISIBLE);
+                    mButtonTrailer2.setOnClickListener(trailerButtonClickListener);
+                }
             }
         }
     }

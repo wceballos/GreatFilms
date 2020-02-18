@@ -105,6 +105,17 @@
                 app:layout_constraintTop_toBottomOf="@id/btn_trailer1" />
 
             <TextView
+                android:id="@+id/tv_no_trailers"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                style="@style/MovieDetailsTextAppearance.NoTrailers"
+                android:visibility="invisible"
+                android:text="@string/no_trailers"
+                app:layout_constraintStart_toStartOf="@id/btn_trailer1"
+                app:layout_constraintTop_toTopOf="@id/btn_trailer1"
+                app:layout_constraintBottom_toBottomOf="@id/btn_trailer1"/>
+
+            <TextView
                 android:id="@+id/tv_movie_overview_label"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

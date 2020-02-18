@@ -1,5 +1,6 @@
 package com.example.greatfilms;
 
+import android.content.Intent;
 import android.net.Uri;
 import android.util.Log;
 
@@ -34,7 +35,7 @@ public class MovieDBUtils {
 
     static String apiKey;
 
-    public static JSONObject getMovieDataJson(String apiKey, String sortOption) {
+    public static JSONObject getSortedMoviesJson(String apiKey, String sortOption) {
         MovieDBUtils.apiKey = apiKey;
         if (!sortOption.equals(SORT_RATINGS) && !sortOption.equals(SORT_POPULARITY)) {
             // Default sort setting
@@ -55,7 +56,38 @@ public class MovieDBUtils {
             e.printStackTrace();
         }
 
-        JSONObject responseJSON = new JSONObject();
+        JSONObject responseJSON = null;
+
+        try {
+            String responseString = getHttpResponseBody(url);
+            try {
+                responseJSON = new JSONObject(responseString);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return responseJSON;
+    }
+
+    public static JSONObject getMovieDetailsJson(int movieID) {
+        Uri movieDetailsUri = Uri.parse(API_BASE_URL)
+                .buildUpon()
+                .appendPath(Integer.toString(movieID))
+                .appendQueryParameter(QUERY_PARAM_API_KEY, apiKey)
+                .build();
+        Log.d("URL", "api movie details url: " + movieDetailsUri.toString());
+
+        URL url = null;
+        try {
+            url = new URL(movieDetailsUri.toString());
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+
+        JSONObject responseJSON = null;
 
         try {
             String responseString = getHttpResponseBody(url);
@@ -81,7 +113,7 @@ public class MovieDBUtils {
         return moviePosterUri;
     }
 
-    public static ArrayList<Uri> getMovieTrailerUris(int movieID) {
+    public static ArrayList<Uri> getMovieTrailerUriList(int movieID) {
         ArrayList<Uri> trailerUriList = new ArrayList<>();
 
         Uri apiRequestUri = Uri.parse(API_BASE_URL)
