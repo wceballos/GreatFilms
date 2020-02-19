@@ -2,8 +2,8 @@
 <resources>
 
     <!-- Movie details activity poster dimensions -->
-    <dimen name="poster_width">150dp</dimen>
-    <dimen name="poster_height">225dp</dimen>
+    <dimen name="poster_width">180dp</dimen>
+    <dimen name="poster_height">270dp</dimen>
 
     <!-- Margins to the left and right edges of the user's screen -->
     <dimen name="viewportHorizontalMargin">8dp</dimen>

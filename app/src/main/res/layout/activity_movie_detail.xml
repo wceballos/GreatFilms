@@ -104,6 +104,16 @@
                 app:layout_constraintStart_toStartOf="@id/btn_trailer1"
                 app:layout_constraintTop_toBottomOf="@id/btn_trailer1" />
 
+            <Button
+                android:id="@+id/btn_trailer3"
+                style="@style/TrailerButton"
+                android:visibility="invisible"
+                android:layout_marginTop="@dimen/contentVerticalMargin"
+                android:text="@string/button_trailer3"
+                android:drawableStart="@android:drawable/ic_media_play"
+                app:layout_constraintStart_toStartOf="@id/btn_trailer2"
+                app:layout_constraintTop_toBottomOf="@id/btn_trailer2" />
+
             <TextView
                 android:id="@+id/tv_no_trailers"
                 android:layout_width="wrap_content"

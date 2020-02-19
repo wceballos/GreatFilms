@@ -33,6 +33,7 @@ public class MovieDetailActivity extends AppCompatActivity {
     private TextView mNoTrailers;
     private Button mButtonTrailer1;
     private Button mButtonTrailer2;
+    private Button mButtonTrailer3;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,6 +52,7 @@ public class MovieDetailActivity extends AppCompatActivity {
         mNoTrailers      = (TextView)  findViewById(R.id.tv_no_trailers);
         mButtonTrailer1  = (Button)    findViewById(R.id.btn_trailer1);
         mButtonTrailer2  = (Button)    findViewById(R.id.btn_trailer2);
+        mButtonTrailer3  = (Button)    findViewById(R.id.btn_trailer3);
 
         Intent intent = getIntent();
 
@@ -134,6 +136,8 @@ public class MovieDetailActivity extends AppCompatActivity {
                         playTrailerIntent.setData(movieTrailerUris.get(0));
                     else if(button == mButtonTrailer2)
                         playTrailerIntent.setData(movieTrailerUris.get(1));
+                    else if(button == mButtonTrailer3)
+                        playTrailerIntent.setData(movieTrailerUris.get(2));
                     else
                         return;
                     if(playTrailerIntent.resolveActivity(getPackageManager()) != null) {
@@ -152,6 +156,10 @@ public class MovieDetailActivity extends AppCompatActivity {
                 if(movieTrailerUris.size() >= 2) {
                     mButtonTrailer2.setVisibility(View.VISIBLE);
                     mButtonTrailer2.setOnClickListener(trailerButtonClickListener);
+                }
+                if(movieTrailerUris.size() >= 3) {
+                    mButtonTrailer3.setVisibility(View.VISIBLE);
+                    mButtonTrailer3.setOnClickListener(trailerButtonClickListener);
                 }
             }
         }

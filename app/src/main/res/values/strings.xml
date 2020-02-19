@@ -25,6 +25,7 @@
 
     <string name="button_trailer1">Trailer 1</string>
     <string name="button_trailer2">Trailer 2</string>
+    <string name="button_trailer3">Trailer 3</string>
     <string name="button_mark_favorite">Favorite</string>
 
 </resources>
