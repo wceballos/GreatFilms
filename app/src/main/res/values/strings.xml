@@ -4,7 +4,7 @@
     <!-- Movie details -->
     <string name="movie_vote">%1$s/10</string>
     <string name="movie_runtime">%1$s min</string>
-    <string name="no_trailers">Trailers unavailable.</string>
+    <string name="no_trailers">Trailers unavailable</string>
 
     <string name="movie_poster_description">Movie Poster</string>
 
@@ -27,5 +27,11 @@
     <string name="button_trailer2">Trailer 2</string>
     <string name="button_trailer3">Trailer 3</string>
     <string name="button_mark_favorite">Favorite</string>
+
+    <!-- Error messages -->
+    <string name="error_no_network">Network unavailable</string>
+    <string name="error_movies">Failed to load movies</string>
+    <string name="error_movie_details">Failed to load movie details</string>
+    <string name="error_movie_trailers">Failed to load movie trailers</string>
 
 </resources>

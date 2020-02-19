@@ -88,7 +88,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MoviesAdapte
     public void onBindViewHolder(@NonNull MoviesAdapterViewHolder holder, int position) {
         try {
             Uri posterUri = MovieDBUtils.getMoviePosterUri(
-                    mMovieData.getJSONObject(position).getString("poster_path"));
+                    mMovieData.getJSONObject(position).getString(MovieDBUtils.PARAM_POSTER));
             Picasso.get()
                     .load(posterUri)
                     .error(R.drawable.ic_launcher_foreground)

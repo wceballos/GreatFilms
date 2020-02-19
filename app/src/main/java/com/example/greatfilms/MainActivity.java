@@ -34,12 +34,14 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
     ProgressBar mLoadingIndicator;
     MovieAdapter mMovieAdapter;
 
-    String mSortSetting = MovieDBUtils.SORT_RATINGS;
+    String mSortSetting = MovieDBUtils.PATH_SORT_RATINGS;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        MovieDBUtils.setApiKey(API_KEY);
 
         mMovieRecycler = (RecyclerView) findViewById(R.id.rv_movies);
         mLoadingIndicator = (ProgressBar) findViewById(R.id.pb_loading_indicator);
@@ -72,12 +74,12 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         switch(id) {
             case R.id.sort_popularity:
                 mMovieAdapter.setMovieData(null);
-                mSortSetting = MovieDBUtils.SORT_POPULARITY;
+                mSortSetting = MovieDBUtils.PATH_SORT_POPULARITY;
                 loadMovieGrid(mSortSetting);
                 break;
             case R.id.sort_ratings:
                 mMovieAdapter.setMovieData(null);
-                mSortSetting = MovieDBUtils.SORT_RATINGS;
+                mSortSetting = MovieDBUtils.PATH_SORT_RATINGS;
                 loadMovieGrid(mSortSetting);
                 break;
         }
@@ -90,7 +92,8 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         Class destinationClass = MovieDetailActivity.class;
         Intent intentToStartDetailActivity = new Intent(context, destinationClass);
         try {
-            intentToStartDetailActivity.putExtra("ID", movie.getInt("id"));
+            intentToStartDetailActivity
+                    .putExtra(MovieDBUtils.PARAM_ID, movie.getInt(MovieDBUtils.PARAM_ID));
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -103,7 +106,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         ByteArrayOutputStream bs = new ByteArrayOutputStream();
         posterBitmap.compress(Bitmap.CompressFormat.JPEG, 50, bs);
 
-        intentToStartDetailActivity.putExtra("POSTER", bs.toByteArray());
+        intentToStartDetailActivity.putExtra(MovieDBUtils.PARAM_POSTER, bs.toByteArray());
 
         if(intentToStartDetailActivity.resolveActivity(getPackageManager()) != null) {
             startActivity(intentToStartDetailActivity);
@@ -125,7 +128,8 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
             new FetchSortedMovies().execute(sortMethod);
         }
         else {
-            makeText(getApplicationContext(), "No Internet", Toast.LENGTH_LONG).show();
+            String errorMsg = getString(R.string.error_no_network);
+            makeText(getApplicationContext(), errorMsg, Toast.LENGTH_LONG).show();
         }
     }
 
@@ -143,7 +147,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
 
         @Override
         protected JSONObject doInBackground(String... sortOption) {
-            return MovieDBUtils.getSortedMoviesJson(API_KEY, sortOption[0]);
+            return MovieDBUtils.getSortedMoviesJson(sortOption[0]);
         }
 
         @Override
@@ -151,14 +155,14 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
             super.onPostExecute(moviesJSON);
             mLoadingIndicator.setVisibility(View.INVISIBLE);
             if(moviesJSON == null) {
-                String toastMsg = "Failed to load movies";
+                String toastMsg = getString(R.string.error_movies);
                 makeText(getApplicationContext(), toastMsg, Toast.LENGTH_LONG).show();
                 return;
             }
 
             JSONArray results;
             try {
-                results = moviesJSON.getJSONArray("results");
+                results = moviesJSON.getJSONArray(MovieDBUtils.PARAM_RESULTS);
                 mMovieAdapter.setMovieData(results);
             } catch (JSONException e) {
                 e.printStackTrace();

@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Movie;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -57,13 +58,14 @@ public class MovieDetailActivity extends AppCompatActivity {
         Intent intent = getIntent();
 
         if(intent != null) {
-            if(intent.hasExtra("POSTER")) {
-                int imageSize = intent.getByteArrayExtra("POSTER").length;
-                Bitmap posterBitmap = BitmapFactory.decodeByteArray(intent.getByteArrayExtra("POSTER"),0, imageSize);
+            if(intent.hasExtra(MovieDBUtils.PARAM_POSTER)) {
+                int imageSize = intent.getByteArrayExtra(MovieDBUtils.PARAM_POSTER).length;
+
+                Bitmap posterBitmap = BitmapFactory.decodeByteArray(intent.getByteArrayExtra(MovieDBUtils.PARAM_POSTER),0, imageSize);
                 mPosterDisplay.setImageBitmap(posterBitmap);
             }
-            if(intent.hasExtra("ID")) {
-                int movieID = intent.getIntExtra("ID", 0);
+            if(intent.hasExtra(MovieDBUtils.PARAM_ID)) {
+                int movieID = intent.getIntExtra(MovieDBUtils.PARAM_ID, 0);
                 new FetchMovieDetails().execute(movieID);
                 new FetchMovieTrailers().execute(movieID);
             }
@@ -88,20 +90,23 @@ public class MovieDetailActivity extends AppCompatActivity {
             super.onPostExecute(movieDetailsJson);
             //mLoadingIndicator.setVisibility(View.INVISIBLE);
             if(movieDetailsJson == null) {
-                String toastMsg = "Failed to load details";
+                String toastMsg = getString(R.string.error_movie_details);
                 makeText(getApplicationContext(), toastMsg, Toast.LENGTH_LONG).show();
                 return;
             }
 
             try {
-                setTitle(movieDetailsJson.getString("title"));
-                String releaseYear = movieDetailsJson.getString("release_date").substring(0,4);
+                setTitle(movieDetailsJson.getString(MovieDBUtils.PARAM_TITLE));
+                String releaseYear = movieDetailsJson
+                        .getString(MovieDBUtils.PARAM_RELEASE).substring(0,4);
                 mReleaseDisplay.setText(releaseYear);
-                String runtime = getString(R.string.movie_runtime, movieDetailsJson.getString("runtime"));
+                String runtime = getString(R.string.movie_runtime,
+                        movieDetailsJson.getString(MovieDBUtils.PARAM_RUNTIME));
                 mRuntimeDisplay.setText(runtime);
-                String vote = getString(R.string.movie_vote, movieDetailsJson.getString("vote_average"));
+                String vote = getString(R.string.movie_vote,
+                        movieDetailsJson.getString(MovieDBUtils.PARAM_VOTES));
                 mVoteDisplay.setText(vote);
-                mOverviewDisplay.setText(movieDetailsJson.getString("overview"));
+                mOverviewDisplay.setText(movieDetailsJson.getString(MovieDBUtils.PARAM_OVERVIEW));
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -124,7 +129,7 @@ public class MovieDetailActivity extends AppCompatActivity {
         protected void onPostExecute(final ArrayList<Uri> movieTrailerUris) {
             super.onPostExecute(movieTrailerUris);
             if(movieTrailerUris == null) {
-                String toastMsg = "Failed to load trailers";
+                String toastMsg = getString(R.string.error_movie_trailers);
                 makeText(getApplicationContext(), toastMsg, Toast.LENGTH_LONG).show();
                 return;
             }

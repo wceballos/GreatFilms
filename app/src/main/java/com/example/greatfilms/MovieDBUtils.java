@@ -1,6 +1,5 @@
 package com.example.greatfilms;
 
-import android.content.Intent;
 import android.net.Uri;
 import android.util.Log;
 
@@ -18,91 +17,103 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 public class MovieDBUtils {
+    // The Movie DB API URL
     final static String API_BASE_URL = "https://api.themoviedb.org/3/movie";
+
+    // JSON Params
+    final static String PARAM_POSTER = "poster_path";
+    final static String PARAM_RESULTS = "results";
+    final static String PARAM_ID = "id";
+    final static String PARAM_TITLE = "title";
+    final static String PARAM_OVERVIEW = "overview";
+    final static String PARAM_VOTES = "vote_average";
+    final static String PARAM_RELEASE = "release_date";
+    final static String PARAM_RUNTIME = "runtime";
+    final static String PARAM_VIDEO_SITE = "site";
+    final static String PARAM_VIDEO_TYPE = "type";
+    final static String PARAM_VIDEO_KEY = "key";
+
+    // Movie poster
     final static String POSTER_BASE_URL = "https://image.tmdb.org/t/p/";
     final static String POSTER_SIZE = "w500";
 
     // Youtube
     final static String YT_BASE_URL = "https://www.youtube.com/watch";
-    final static String QUERY_PARAM_YT_VIDEO = "v";
+    final static String YT_VIDEO_TYPE = "Trailer";
+    final static String YT_VIDEO_SITE = "YouTube";
 
     // Query parameters
     final static String QUERY_PARAM_API_KEY = "api_key";
+    final static String QUERY_PARAM_YT_VIDEO = "v";
+
 
     // Sorting options
-    final static String SORT_RATINGS = "top_rated";
-    final static String SORT_POPULARITY = "popular";
+    final static String PATH_SORT_RATINGS = "top_rated";
+    final static String PATH_SORT_POPULARITY = "popular";
 
-    static String apiKey;
+    // Movie info paths
+    final static String PATH_DETAILS = ""; // There is no path name for this
+    final static String PATH_REVIEWS = "reviews";
+    final static String PATH_VIDEOS  = "videos";
 
-    public static JSONObject getSortedMoviesJson(String apiKey, String sortOption) {
+    // The Movie DB API key
+    static private String apiKey;
+
+    /**
+     * This method must be called before any other method. This sets the API key to be used.
+     *
+     * @param apiKey The Movie DB API key.
+     */
+    public static void setApiKey(String apiKey) {
         MovieDBUtils.apiKey = apiKey;
-        if (!sortOption.equals(SORT_RATINGS) && !sortOption.equals(SORT_POPULARITY)) {
+    }
+
+    /**
+     * Get a list of movies sorted by a given parameter.
+     *
+     * @param sortOption How to sort the movies.
+     * @return The Movie DB JSON response.
+     */
+    public static JSONObject getSortedMoviesJson(String sortOption) {
+        MovieDBUtils.apiKey = apiKey;
+        if (!sortOption.equals(PATH_SORT_RATINGS) && !sortOption.equals(PATH_SORT_POPULARITY)) {
             // Default sort setting
-            sortOption = SORT_POPULARITY;
+            sortOption = PATH_SORT_POPULARITY;
         }
 
-        Uri apiRequestUri = Uri.parse(API_BASE_URL)
-                .buildUpon()
-                .appendEncodedPath(sortOption)
-                .appendQueryParameter(QUERY_PARAM_API_KEY, apiKey)
-                .build();
-        Log.d("URL", "api request url: " + apiRequestUri.toString());
+        JSONObject sortedMoviesJson = null;
 
-        URL url = null;
         try {
-            url = new URL(apiRequestUri.toString());
-        } catch (MalformedURLException e) {
+            sortedMoviesJson = getMovieInfoApiJson(0, sortOption);
+        } catch (JSONException e) {
             e.printStackTrace();
         }
 
-        JSONObject responseJSON = null;
-
-        try {
-            String responseString = getHttpResponseBody(url);
-            try {
-                responseJSON = new JSONObject(responseString);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return responseJSON;
+        return sortedMoviesJson;
     }
 
+    /**
+     * Get details on a particular movie.
+     *
+     * @param movieID The Movie DB movie ID.
+     * @return The Move DB Json response.
+     */
     public static JSONObject getMovieDetailsJson(int movieID) {
-        Uri movieDetailsUri = Uri.parse(API_BASE_URL)
-                .buildUpon()
-                .appendPath(Integer.toString(movieID))
-                .appendQueryParameter(QUERY_PARAM_API_KEY, apiKey)
-                .build();
-        Log.d("URL", "api movie details url: " + movieDetailsUri.toString());
-
-        URL url = null;
+        JSONObject movieDetailsJson = null;
         try {
-            url = new URL(movieDetailsUri.toString());
-        } catch (MalformedURLException e) {
+            movieDetailsJson = getMovieInfoApiJson(movieID, PATH_DETAILS);
+        } catch (JSONException e) {
             e.printStackTrace();
         }
-
-        JSONObject responseJSON = null;
-
-        try {
-            String responseString = getHttpResponseBody(url);
-            try {
-                responseJSON = new JSONObject(responseString);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return responseJSON;
+        return movieDetailsJson;
     }
 
+    /**
+     * This method is used for getting a Uri to retrieve a movie poster.
+     *
+     * @param posterPath Poster path from The Movie DB.
+     * @return A uri that can be used to retrieve the poster.
+     */
     public static Uri getMoviePosterUri(String posterPath) {
         Uri moviePosterUri = Uri.parse(POSTER_BASE_URL)
                 .buildUpon()
@@ -113,16 +124,73 @@ public class MovieDBUtils {
         return moviePosterUri;
     }
 
+    /**
+     * Gets the uri of all YouTube trailers for a movie.
+     *
+     * @param movieID The Movie DB movie ID.
+     * @return An ArrayList of movie trailer uris.
+     */
     public static ArrayList<Uri> getMovieTrailerUriList(int movieID) {
         ArrayList<Uri> trailerUriList = new ArrayList<>();
 
-        Uri apiRequestUri = Uri.parse(API_BASE_URL)
-                .buildUpon()
-                .appendPath(Integer.toString(movieID))
-                .appendPath("videos")
-                .appendQueryParameter(QUERY_PARAM_API_KEY, apiKey)
-                .build();
-        Log.d("URL", "api movie trailer request url: " + apiRequestUri.toString());
+        try {
+            JSONObject movieTrailersJson = getMovieInfoApiJson(movieID, PATH_VIDEOS);
+            JSONArray resultsJsonArray = movieTrailersJson.getJSONArray(PARAM_RESULTS);
+            for(int i = 0; i < resultsJsonArray.length(); i++) {
+                JSONObject resultJson = resultsJsonArray.getJSONObject(i);
+                String site = resultJson.getString(PARAM_VIDEO_SITE);
+                String type = resultJson.getString(PARAM_VIDEO_TYPE);
+                String key  = resultJson.getString(PARAM_VIDEO_KEY);
+                if(site.equals(YT_VIDEO_SITE) && type.equals(YT_VIDEO_TYPE)) {
+                    Uri trailerUri = Uri.parse(YT_BASE_URL)
+                            .buildUpon()
+                            .appendQueryParameter(QUERY_PARAM_YT_VIDEO, key)
+                            .build();
+                    Log.d("URL", "Trailer url created: " + trailerUri.toString());
+                    trailerUriList.add(trailerUri);
+                }
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        return trailerUriList;
+    }
+
+    /**
+     * Gets the reviews on a movie.
+     *
+     * @param movieID The Movie DB movie ID.
+     * @return The Movie DB Json response containing reviews.
+     */
+    public static JSONObject getMovieReviewsJson(int movieID) {
+        JSONObject movieReviewsJson = null;
+        try {
+            movieReviewsJson = getMovieInfoApiJson(movieID, PATH_REVIEWS);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return movieReviewsJson;
+    }
+
+    /**
+     *  This method is used to request information about a movie.
+     *
+     * @param movieID The Movie DB movie ID.
+     * @param path Path for the information being requested (e.g. details, videos, reviews, etc.)
+     * @return A JSONObject containing the response from the GET request.
+     * @throws JSONException Parsing error.
+     */
+    private static JSONObject getMovieInfoApiJson(int movieID, String path) throws JSONException {
+        Uri.Builder apiRequestBuilder = Uri.parse(API_BASE_URL).buildUpon();
+        if(movieID > 0)
+            apiRequestBuilder.appendPath(Integer.toString(movieID));
+        if(!path.isEmpty())
+            apiRequestBuilder.appendPath(path);
+        apiRequestBuilder.appendQueryParameter(QUERY_PARAM_API_KEY, apiKey);
+        Uri apiRequestUri = apiRequestBuilder.build();
+
+        Log.d("URL", "TMDB API request url: " + apiRequestUri.toString());
 
         URL url = null;
         try {
@@ -131,33 +199,16 @@ public class MovieDBUtils {
             e.printStackTrace();
         }
 
+        JSONObject responseJSON = null;
+
         try {
             String responseString = getHttpResponseBody(url);
-            try {
-                JSONObject responseJSON = new JSONObject(responseString);
-                JSONArray resultsJsonArray = responseJSON.getJSONArray("results");
-                for(int i = 0; i < resultsJsonArray.length(); i++) {
-                    JSONObject resultJson = resultsJsonArray.getJSONObject(i);
-                    String site = resultJson.getString("site");
-                    String type = resultJson.getString("type");
-                    String key  = resultJson.getString("key");
-                    if(site.equals("YouTube") && type.equals("Trailer")) {
-                        Uri trailerUri = Uri.parse(YT_BASE_URL)
-                                .buildUpon()
-                                .appendQueryParameter(QUERY_PARAM_YT_VIDEO, key)
-                                .build();
-                        Log.d("URL", "trailer url created: " + trailerUri.toString());
-                        trailerUriList.add(trailerUri);
-                    }
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
+            responseJSON = new JSONObject(responseString);
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        return trailerUriList;
+        return responseJSON;
     }
 
     /**
