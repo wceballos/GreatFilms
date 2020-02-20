@@ -25,15 +25,12 @@
         app:layout_constraintStart_toEndOf="@id/tv_review_author_label"
         app:layout_constraintTop_toTopOf="@id/tv_review_author_label"/>
 
-    <!-- TODO: set ellipsis programmatically in ReviewAdapter -->
     <TextView
         android:id="@+id/tv_review_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         style="@style/MovieDetailsTextAppearance"
         tools:text="@string/lorem_ipsum_long_body_text"
-        android:maxLines="@integer/reviewTextLines"
-        android:ellipsize="end"
         app:layout_constraintStart_toStartOf="@id/tv_review_author_label"
         app:layout_constraintTop_toBottomOf="@id/tv_review_author_label" />
 

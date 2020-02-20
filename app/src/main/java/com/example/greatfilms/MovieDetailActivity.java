@@ -5,14 +5,13 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Movie;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -45,7 +44,9 @@ public class MovieDetailActivity extends AppCompatActivity implements ReviewAdap
 
     ReviewAdapter mReviewAdapter;
 
-    public int mMovieId;
+    public int mMovieId = 0;
+    public Bitmap mPosterBitmap;
+    String mMovieTitle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,7 +55,6 @@ public class MovieDetailActivity extends AppCompatActivity implements ReviewAdap
         androidx.appcompat.widget.Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-
 
         mPosterDisplay     = (ImageView)    findViewById(R.id.iv_movie_poster);
         mReleaseDisplay    = (TextView)     findViewById(R.id.tv_movie_release);
@@ -80,46 +80,67 @@ public class MovieDetailActivity extends AppCompatActivity implements ReviewAdap
         if(intent != null) {
             if(intent.hasExtra(MovieDBUtils.PARAM_POSTER)) {
                 int imageSize = intent.getByteArrayExtra(MovieDBUtils.PARAM_POSTER).length;
-
-                Bitmap posterBitmap = BitmapFactory.decodeByteArray(intent.getByteArrayExtra(MovieDBUtils.PARAM_POSTER),0, imageSize);
-                mPosterDisplay.setImageBitmap(posterBitmap);
+                mPosterBitmap = BitmapFactory.decodeByteArray(intent.getByteArrayExtra(MovieDBUtils.PARAM_POSTER),0, imageSize);
+                mPosterDisplay.setImageBitmap(mPosterBitmap);
             }
             if(intent.hasExtra(MovieDBUtils.PARAM_ID)) {
                 mMovieId = intent.getIntExtra(MovieDBUtils.PARAM_ID, 0);
                 new FetchMovieDetails().execute(mMovieId);
                 new FetchMovieTrailers().execute(mMovieId);
                 mButtonShowReviews.setOnClickListener(this);
+                setTitle(mMovieTitle);
             }
         }
     }
 
-    // TODO: Read the long review in a new activity
+    /**
+     * onClick Handler for movie review list items (Recycler View).
+     *
+     * @param view The View that was clicked.
+     * @param review JSONObject of the movie review.
+     */
     @Override
     public void onClick(View view, JSONObject review) {
+        Context context = getApplicationContext();
+        Class destinationClass = MovieReviewActivity.class;
+        Intent reviewActivityIntent = new Intent(context, destinationClass);
+
         try {
-            String urlString = review.getString(MovieDBUtils.PARAM_REVIEW_URL);
-            Uri uri = Uri.parse(urlString);
-            Intent openReviewUrlIntent = new Intent(Intent.ACTION_VIEW, uri);
-            if(openReviewUrlIntent.resolveActivity(getPackageManager()) != null)
-                startActivity(openReviewUrlIntent);
+            reviewActivityIntent
+                    .putExtra(MovieDBUtils.PARAM_REVIEW_AUTHOR, review.getString(MovieDBUtils.PARAM_REVIEW_AUTHOR))
+                    .putExtra(MovieDBUtils.PARAM_REVIEW_TEXT, review.getString(MovieDBUtils.PARAM_REVIEW_TEXT))
+                    .putExtra(MovieDBUtils.PARAM_TITLE, mMovieTitle);
         } catch (JSONException e) {
             e.printStackTrace();
+        }
+        if(reviewActivityIntent.resolveActivity(getPackageManager()) != null) {
+            startActivity(reviewActivityIntent);
         }
     }
 
     /**
-     * Called when a view has been clicked.
+     * onClick Handler for buttons, except the buttons to watch trailers.
      *
-     * @param v The view that was clicked.
+     * @param button The Button View that was clicked.
      */
     @Override
-    public void onClick(View v) {
-        int id = v.getId();
+    public void onClick(View button) {
+        int id = button.getId();
+
         if(id == mButtonShowReviews.getId()) {
             mButtonShowReviews.setVisibility(View.GONE);
             mReviewRecycler.setVisibility(View.VISIBLE);
             mReviewsLabel.setVisibility(View.VISIBLE);
             new FetchMovieReviews().execute(mMovieId);
+        }
+        else if(id == mButtonTrailer1.getId()) {
+
+        }
+        else if(id == mButtonTrailer2.getId()) {
+
+        }
+        else if(id == mButtonTrailer3.getId()) {
+
         }
     }
 
@@ -141,7 +162,8 @@ public class MovieDetailActivity extends AppCompatActivity implements ReviewAdap
             }
 
             try {
-                setTitle(movieDetailsJson.getString(MovieDBUtils.PARAM_TITLE));
+                mMovieTitle = movieDetailsJson.getString(MovieDBUtils.PARAM_TITLE);
+                setTitle(mMovieTitle);
                 String releaseYear = movieDetailsJson
                         .getString(MovieDBUtils.PARAM_RELEASE).substring(0,4);
                 mReleaseDisplay.setText(releaseYear);
@@ -175,13 +197,13 @@ public class MovieDetailActivity extends AppCompatActivity implements ReviewAdap
             }
             View.OnClickListener trailerButtonClickListener = new View.OnClickListener() {
                 @Override
-                public void onClick(View button) {
+                public void onClick(View trailerButton) {
                     Intent playTrailerIntent = new Intent(Intent.ACTION_VIEW);
-                    if(button == mButtonTrailer1)
+                    if(trailerButton == mButtonTrailer1)
                         playTrailerIntent.setData(movieTrailerUris.get(0));
-                    else if(button == mButtonTrailer2)
+                    else if(trailerButton == mButtonTrailer2)
                         playTrailerIntent.setData(movieTrailerUris.get(1));
-                    else if(button == mButtonTrailer3)
+                    else if(trailerButton == mButtonTrailer3)
                         playTrailerIntent.setData(movieTrailerUris.get(2));
                     else
                         return;

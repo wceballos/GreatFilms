@@ -1,6 +1,7 @@
 package com.example.greatfilms;
 
 import android.content.Context;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,6 +16,7 @@ import org.json.JSONObject;
 
 public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewAdapterViewHolder> {
 
+    public Context context;
     private JSONArray mMovieReviews;
     private final ReviewAdapterOnClickHandler mClickHandler;
 
@@ -29,7 +31,7 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewAdap
     @NonNull
     @Override
     public ReviewAdapterViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        Context context = parent.getContext();
+        context = parent.getContext();
         int layoutIdForListItem = R.layout.review_list_item;
         LayoutInflater layoutInflater = LayoutInflater.from(context);
         boolean shouldAttachToParentImmediately = false;
@@ -46,6 +48,8 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewAdap
             String text = review.getString(MovieDBUtils.PARAM_REVIEW_TEXT);
             holder.mReviewAuthor.setText(author);
             holder.mReviewText.setText(text);
+            holder.mReviewText.setEllipsize(TextUtils.TruncateAt.END);
+            holder.mReviewText.setMaxLines(context.getResources().getInteger(R.integer.reviewTextLines));
         } catch (JSONException e) {
             e.printStackTrace();
         }
