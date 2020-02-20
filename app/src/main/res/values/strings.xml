@@ -5,6 +5,7 @@
     <string name="movie_vote">%1$s/10</string>
     <string name="movie_runtime">%1$s min</string>
     <string name="no_trailers">Trailers unavailable</string>
+    <string name="no_reviews">No reviews yet</string>
 
     <string name="movie_poster_description">Movie Poster</string>
 
@@ -14,8 +15,10 @@
     <string name="by_popularity">By Popularity</string>
 
 
-    <string name="movie_overview_label">SYNOPSIS</string>
-    <string name="lorem_ipsum_movie_overview">
+    <string name="movie_overview_label">synopsis</string>
+    <string name="movie_reviews_label">reviews</string>
+
+    <string name="lorem_ipsum_long_body_text">
         "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam ac tempus lorem, vitae"
         "sollicitudin enim. Quisque placerat ligula lorem, accumsan vulputate eros vestibulum quis."
         "Nullam fermentum non odio et pharetra. Aliquam tincidunt congue lacus a facilisis."
@@ -27,11 +30,16 @@
     <string name="button_trailer2">Trailer 2</string>
     <string name="button_trailer3">Trailer 3</string>
     <string name="button_mark_favorite">Favorite</string>
+    <string name="button_show_reviews">Reviews</string>
+
+    <string name="review_author_label">written by:</string>
+    <string name="click_more">Click to read more</string>
 
     <!-- Error messages -->
     <string name="error_no_network">Network unavailable</string>
     <string name="error_movies">Failed to load movies</string>
     <string name="error_movie_details">Failed to load movie details</string>
     <string name="error_movie_trailers">Failed to load movie trailers</string>
+    <string name="error_movie_reviews">Failed to load movie reviews</string>
 
 </resources>

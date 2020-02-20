@@ -2,6 +2,7 @@ package com.example.greatfilms;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
@@ -11,12 +12,14 @@ import android.graphics.Movie;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -24,7 +27,7 @@ import java.util.ArrayList;
 
 import static android.widget.Toast.makeText;
 
-public class MovieDetailActivity extends AppCompatActivity {
+public class MovieDetailActivity extends AppCompatActivity implements ReviewAdapter.ReviewAdapterOnClickHandler, View.OnClickListener {
 
     private ImageView mPosterDisplay;
     private TextView mReleaseDisplay;
@@ -32,9 +35,17 @@ public class MovieDetailActivity extends AppCompatActivity {
     private TextView mVoteDisplay;
     private TextView mOverviewDisplay;
     private TextView mNoTrailers;
+    private TextView mReviewsLabel;
+    private TextView mNoReviews;
     private Button mButtonTrailer1;
     private Button mButtonTrailer2;
     private Button mButtonTrailer3;
+    private Button mButtonShowReviews;
+    private RecyclerView mReviewRecycler;
+
+    ReviewAdapter mReviewAdapter;
+
+    public int mMovieId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,15 +56,24 @@ public class MovieDetailActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
 
-        mPosterDisplay   = (ImageView) findViewById(R.id.iv_movie_poster);
-        mReleaseDisplay  = (TextView)  findViewById(R.id.tv_movie_release);
-        mRuntimeDisplay  = (TextView)  findViewById(R.id.tv_movie_runtime);
-        mVoteDisplay     = (TextView)  findViewById(R.id.tv_movie_vote);
-        mOverviewDisplay = (TextView)  findViewById(R.id.tv_movie_overview);
-        mNoTrailers      = (TextView)  findViewById(R.id.tv_no_trailers);
-        mButtonTrailer1  = (Button)    findViewById(R.id.btn_trailer1);
-        mButtonTrailer2  = (Button)    findViewById(R.id.btn_trailer2);
-        mButtonTrailer3  = (Button)    findViewById(R.id.btn_trailer3);
+        mPosterDisplay     = (ImageView)    findViewById(R.id.iv_movie_poster);
+        mReleaseDisplay    = (TextView)     findViewById(R.id.tv_movie_release);
+        mRuntimeDisplay    = (TextView)     findViewById(R.id.tv_movie_runtime);
+        mVoteDisplay       = (TextView)     findViewById(R.id.tv_movie_vote);
+        mOverviewDisplay   = (TextView)     findViewById(R.id.tv_movie_overview);
+        mNoTrailers        = (TextView)     findViewById(R.id.tv_no_trailers);
+        mReviewsLabel      = (TextView)     findViewById(R.id.tv_movie_reviews_label);
+        mNoReviews         = (TextView)     findViewById(R.id.tv_no_reviews);
+        mButtonTrailer1    = (Button)       findViewById(R.id.btn_trailer1);
+        mButtonTrailer2    = (Button)       findViewById(R.id.btn_trailer2);
+        mButtonTrailer3    = (Button)       findViewById(R.id.btn_trailer3);
+        mButtonShowReviews = (Button)       findViewById(R.id.btn_show_reviews);
+        mReviewRecycler    = (RecyclerView) findViewById(R.id.rv_reviews);
+
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
+        mReviewRecycler.setLayoutManager(linearLayoutManager);
+        mReviewAdapter = new ReviewAdapter(this);
+        mReviewRecycler.setAdapter(mReviewAdapter);
 
         Intent intent = getIntent();
 
@@ -65,20 +85,45 @@ public class MovieDetailActivity extends AppCompatActivity {
                 mPosterDisplay.setImageBitmap(posterBitmap);
             }
             if(intent.hasExtra(MovieDBUtils.PARAM_ID)) {
-                int movieID = intent.getIntExtra(MovieDBUtils.PARAM_ID, 0);
-                new FetchMovieDetails().execute(movieID);
-                new FetchMovieTrailers().execute(movieID);
+                mMovieId = intent.getIntExtra(MovieDBUtils.PARAM_ID, 0);
+                new FetchMovieDetails().execute(mMovieId);
+                new FetchMovieTrailers().execute(mMovieId);
+                mButtonShowReviews.setOnClickListener(this);
             }
         }
     }
 
-    public class FetchMovieDetails extends AsyncTask<Integer, Void, JSONObject> {
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            //mLoadingIndicator.setVisibility(View.VISIBLE);
+    // TODO: Read the long review in a new activity
+    @Override
+    public void onClick(View view, JSONObject review) {
+        try {
+            String urlString = review.getString(MovieDBUtils.PARAM_REVIEW_URL);
+            Uri uri = Uri.parse(urlString);
+            Intent openReviewUrlIntent = new Intent(Intent.ACTION_VIEW, uri);
+            if(openReviewUrlIntent.resolveActivity(getPackageManager()) != null)
+                startActivity(openReviewUrlIntent);
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
+    }
+
+    /**
+     * Called when a view has been clicked.
+     *
+     * @param v The view that was clicked.
+     */
+    @Override
+    public void onClick(View v) {
+        int id = v.getId();
+        if(id == mButtonShowReviews.getId()) {
+            mButtonShowReviews.setVisibility(View.GONE);
+            mReviewRecycler.setVisibility(View.VISIBLE);
+            mReviewsLabel.setVisibility(View.VISIBLE);
+            new FetchMovieReviews().execute(mMovieId);
+        }
+    }
+
+    public class FetchMovieDetails extends AsyncTask<Integer, Void, JSONObject> {
 
         @Override
         protected JSONObject doInBackground(Integer... movieID) {
@@ -114,11 +159,6 @@ public class MovieDetailActivity extends AppCompatActivity {
     }
 
     public class FetchMovieTrailers extends AsyncTask<Integer, Void, ArrayList<Uri>> {
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-        }
 
         @Override
         protected ArrayList<Uri> doInBackground(Integer... movieID) {
@@ -166,6 +206,38 @@ public class MovieDetailActivity extends AppCompatActivity {
                     mButtonTrailer3.setVisibility(View.VISIBLE);
                     mButtonTrailer3.setOnClickListener(trailerButtonClickListener);
                 }
+            }
+        }
+    }
+
+    public class FetchMovieReviews extends AsyncTask<Integer, Void, JSONObject> {
+
+        @Override
+        protected JSONObject doInBackground(Integer... movieID) {
+            return MovieDBUtils.getMovieReviewsJson(movieID[0]);
+        }
+
+        @Override
+        protected void onPostExecute(JSONObject movieReviewsJson) {
+            super.onPostExecute(movieReviewsJson);
+            if(movieReviewsJson == null) {
+                String toastMsg = getString(R.string.error_movie_reviews);
+                makeText(getApplicationContext(), toastMsg, Toast.LENGTH_LONG).show();
+                return;
+            }
+
+            JSONArray results;
+            try {
+                results = movieReviewsJson.getJSONArray(MovieDBUtils.PARAM_RESULTS);
+                if(results.length() > 0) {
+                    mNoReviews.setVisibility(View.GONE);
+                    mReviewAdapter.setMovieReviews(results);
+                }
+                else {
+                    mNoReviews.setVisibility(View.VISIBLE);
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
             }
         }
     }

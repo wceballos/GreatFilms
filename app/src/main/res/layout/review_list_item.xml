@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+
+    <TextView
+        android:id="@+id/tv_review_author_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        style="@style/MovieDetailsTextAppearance.Label.ReviewAuthor"
+        android:text="@string/review_author_label"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+
+    <TextView
+        android:id="@+id/tv_review_author"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        style="@style/MovieDetailsTextAppearance.Label.ReviewAuthor"
+        tools:text="Mr. Reviewer"
+        android:layout_marginStart="@dimen/viewportHorizontalMargin"
+        app:layout_constraintStart_toEndOf="@id/tv_review_author_label"
+        app:layout_constraintTop_toTopOf="@id/tv_review_author_label"/>
+
+    <!-- TODO: set ellipsis programmatically in ReviewAdapter -->
+    <TextView
+        android:id="@+id/tv_review_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="@style/MovieDetailsTextAppearance"
+        tools:text="@string/lorem_ipsum_long_body_text"
+        android:maxLines="@integer/reviewTextLines"
+        android:ellipsize="end"
+        app:layout_constraintStart_toStartOf="@id/tv_review_author_label"
+        app:layout_constraintTop_toBottomOf="@id/tv_review_author_label" />
+
+    <TextView
+        android:id="@+id/tv_click_more"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        style="@style/MovieDetailsTextAppearance.ClickMore"
+        android:text="@string/click_more"
+        app:layout_constraintStart_toStartOf="@id/tv_review_text"
+        app:layout_constraintTop_toBottomOf="@id/tv_review_text"
+        android:paddingBottom="@dimen/contentVerticalMargin"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

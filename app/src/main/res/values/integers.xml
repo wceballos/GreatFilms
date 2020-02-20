@@ -2,4 +2,6 @@
 <resources>
     <!-- Number of movie columns to display in the recycler view -->
     <integer name="moviePosterColumns">3</integer>
+    <integer name="reviewTextChars">200</integer>
+    <integer name="reviewTextLines">5</integer>
 </resources>

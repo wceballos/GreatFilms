@@ -86,7 +86,7 @@
 
             <Button
                 android:id="@+id/btn_trailer1"
-                style="@style/TrailerButton"
+                style="@style/DefaultButton"
                 android:visibility="invisible"
                 android:layout_marginTop="@dimen/contentVerticalMargin"
                 android:text="@string/button_trailer1"
@@ -96,7 +96,7 @@
 
             <Button
                 android:id="@+id/btn_trailer2"
-                style="@style/TrailerButton"
+                style="@style/DefaultButton"
                 android:visibility="invisible"
                 android:layout_marginTop="@dimen/contentVerticalMargin"
                 android:text="@string/button_trailer2"
@@ -106,7 +106,7 @@
 
             <Button
                 android:id="@+id/btn_trailer3"
-                style="@style/TrailerButton"
+                style="@style/DefaultButton"
                 android:visibility="invisible"
                 android:layout_marginTop="@dimen/contentVerticalMargin"
                 android:text="@string/button_trailer3"
@@ -118,7 +118,7 @@
                 android:id="@+id/tv_no_trailers"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                style="@style/MovieDetailsTextAppearance.NoTrailers"
+                style="@style/MovieDetailsTextAppearance.NoInfoAvailableYet"
                 android:visibility="invisible"
                 android:text="@string/no_trailers"
                 app:layout_constraintStart_toStartOf="@id/btn_trailer1"
@@ -142,10 +142,54 @@
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="@dimen/viewportHorizontalMargin"
                 android:layout_marginRight="@dimen/viewportHorizontalMargin"
-                android:paddingBottom="@dimen/contentVerticalMargin"
-                tools:text="@string/lorem_ipsum_movie_overview"
+                tools:text="@string/lorem_ipsum_long_body_text"
                 style="@style/MovieDetailsTextAppearance"
                 app:layout_constraintTop_toBottomOf="@id/tv_movie_overview_label" />
+
+            <Button
+                android:id="@+id/btn_show_reviews"
+                style="@style/DefaultButton"
+                android:layout_marginTop="@dimen/contentVerticalMargin"
+                android:visibility="visible"
+                android:text="@string/button_show_reviews"
+                android:drawableStart="@android:drawable/arrow_down_float"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tv_movie_overview" />
+
+            <TextView
+                android:id="@+id/tv_movie_reviews_label"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:layout_goneMarginTop="@dimen/contentVerticalMargin"
+                android:layout_marginLeft="@dimen/viewportHorizontalMargin"
+                android:layout_marginRight="@dimen/viewportHorizontalMargin"
+                style="@style/MovieDetailsTextAppearance.Label"
+                android:visibility="invisible"
+                android:text="@string/movie_reviews_label"
+                app:layout_constraintTop_toBottomOf="@id/tv_movie_overview"
+                android:layout_marginTop="@dimen/contentVerticalMargin"/>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_reviews"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="invisible"
+                android:layout_marginTop="@dimen/contentVerticalMargin"
+                android:layout_marginRight="@dimen/viewportHorizontalMargin"
+                android:layout_marginLeft="@dimen/viewportHorizontalMargin"
+                app:layout_constraintTop_toBottomOf="@id/tv_movie_reviews_label"/>
+
+            <TextView
+                android:id="@+id/tv_no_reviews"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                style="@style/MovieDetailsTextAppearance.NoInfoAvailableYet"
+                android:layout_marginTop="@dimen/contentVerticalMargin"
+                android:visibility="invisible"
+                android:text="@string/no_reviews"
+                app:layout_constraintStart_toStartOf="@id/tv_movie_reviews_label"
+                app:layout_constraintTop_toBottomOf="@id/tv_movie_reviews_label"/>
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.core.widget.NestedScrollView>

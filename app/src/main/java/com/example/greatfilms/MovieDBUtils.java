@@ -32,6 +32,9 @@ public class MovieDBUtils {
     final static String PARAM_VIDEO_SITE = "site";
     final static String PARAM_VIDEO_TYPE = "type";
     final static String PARAM_VIDEO_KEY = "key";
+    final static String PARAM_REVIEW_AUTHOR = "author";
+    final static String PARAM_REVIEW_TEXT = "content";
+    final static String PARAM_REVIEW_URL = "url";
 
     // Movie poster
     final static String POSTER_BASE_URL = "https://image.tmdb.org/t/p/";

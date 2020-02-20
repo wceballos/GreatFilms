@@ -47,13 +47,24 @@
 
     <style name="MovieDetailsTextAppearance.Label">
         <item name="android:textSize">12sp</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/colorAccent</item>
     </style>
 
-    <style name="MovieDetailsTextAppearance.NoTrailers">
+    <style name="MovieDetailsTextAppearance.NoInfoAvailableYet">
         <item name="android:textSize">12sp</item>
         <item name="android:textStyle">italic</item>
     </style>
 
+    <style name="MovieDetailsTextAppearance.Label.ReviewAuthor">
+        <item name="android:textColor">@color/colorOnPrimary</item>
+    </style>
+
+    <style name="MovieDetailsTextAppearance.ClickMore">
+        <item name="android:textSize">12sp</item>
+        <item name="android:textStyle">italic</item>
+    </style>
 
     <!-- AppBar Text in movie detail activity -->
     <style name="AppBarMovieTitleText" parent="TextAppearance.AppCompat">
@@ -63,12 +74,12 @@
 
 
     <!-- Buttons to select trailer to watch -->
-    <style name="TrailerButton" parent="Widget.AppCompat.Button">
-        <item name="android:layout_width">@dimen/trailerButtonWidth</item>
-        <item name="android:layout_height">@dimen/trailerButtonHeight</item>
+    <style name="DefaultButton" parent="Widget.AppCompat.Button">
+        <item name="android:layout_width">@dimen/defaultButtonWidth</item>
+        <item name="android:layout_height">@dimen/defaultButtonHeight</item>
         <item name="android:textSize">@dimen/buttonTextSize</item>
         <item name="android:textColor">@android:color/white</item>
-        <item name="android:background">@drawable/touch_selector_trailer_btn</item>
+        <item name="android:background">@drawable/touch_selector_default_btn</item>
     </style>
 
 

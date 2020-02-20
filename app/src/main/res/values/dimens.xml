@@ -11,6 +11,7 @@
 
     <!-- Margin for vertical spacing between views on the screen -->
     <dimen name="contentVerticalMargin">16dp</dimen>
+    <dimen name="contentVerticalMarginHalf">8dp</dimen>
 
     <!-- Margin between the poster and the views to the right of the poster in activity_movie_detail -->
     <dimen name="viewNextToPosterMargin">32dp</dimen>
@@ -18,8 +19,8 @@
     <!-- The banner that holds the text view of the movie title in activity_movie_detail -->
     <dimen name="appBarHeight">180dp</dimen>
 
-    <dimen name="trailerButtonHeight">40dp</dimen>
-    <dimen name="trailerButtonWidth">120dp</dimen>
+    <dimen name="defaultButtonHeight">40dp</dimen>
+    <dimen name="defaultButtonWidth">120dp</dimen>
     <dimen name="buttonTextSize">14sp</dimen>
 
     <dimen name="fab_margin">16dp</dimen>
