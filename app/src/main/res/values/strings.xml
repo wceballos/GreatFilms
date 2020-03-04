@@ -35,6 +35,10 @@
     <string name="review_author_label">written by:</string>
     <string name="click_more">Click to read more</string>
 
+    <!-- Toasts -->
+    <string name="movie_added_favorites">Added to favorites!</string>
+    <string name="movie_removed_favorites">Removed from favorites!</string>
+
     <!-- Error messages -->
     <string name="error_no_network">Network unavailable</string>
     <string name="error_movies">Failed to load movies</string>

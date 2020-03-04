@@ -9,14 +9,20 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.example.greatfilms.Favorites.FavoritesDB;
+import com.example.greatfilms.Favorites.MovieEntity;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -41,12 +47,19 @@ public class MovieDetailActivity extends AppCompatActivity implements ReviewAdap
     private Button mButtonTrailer3;
     private Button mButtonShowReviews;
     private RecyclerView mReviewRecycler;
+    private FloatingActionButton fab;
 
     ReviewAdapter mReviewAdapter;
 
     public int mMovieId = 0;
-    public Bitmap mPosterBitmap;
+    public byte[] mPosterByteArray;
     String mMovieTitle;
+    String mMovieReleaseYear;
+    String mMovieRuntime;
+    String mMovieOverview;
+    String mMovieVote;
+
+    boolean mMovieIsFavorite = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,22 +82,27 @@ public class MovieDetailActivity extends AppCompatActivity implements ReviewAdap
         mButtonTrailer3    = (Button)       findViewById(R.id.btn_trailer3);
         mButtonShowReviews = (Button)       findViewById(R.id.btn_show_reviews);
         mReviewRecycler    = (RecyclerView) findViewById(R.id.rv_reviews);
+        fab                = (FloatingActionButton) findViewById(R.id.fab_mark_favorite);
 
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         mReviewRecycler.setLayoutManager(linearLayoutManager);
         mReviewAdapter = new ReviewAdapter(this);
         mReviewRecycler.setAdapter(mReviewAdapter);
+        fab.setOnClickListener(this);
 
         Intent intent = getIntent();
 
         if(intent != null) {
             if(intent.hasExtra(MovieDBUtils.PARAM_POSTER)) {
-                int imageSize = intent.getByteArrayExtra(MovieDBUtils.PARAM_POSTER).length;
-                mPosterBitmap = BitmapFactory.decodeByteArray(intent.getByteArrayExtra(MovieDBUtils.PARAM_POSTER),0, imageSize);
-                mPosterDisplay.setImageBitmap(mPosterBitmap);
+                mPosterByteArray = intent.getByteArrayExtra(MovieDBUtils.PARAM_POSTER);
+                int imageSize = mPosterByteArray.length;
+                Bitmap posterBitmap = BitmapFactory.decodeByteArray(intent.getByteArrayExtra(MovieDBUtils.PARAM_POSTER),0, imageSize);
+                mPosterDisplay.setImageBitmap(posterBitmap);
             }
             if(intent.hasExtra(MovieDBUtils.PARAM_ID)) {
                 mMovieId = intent.getIntExtra(MovieDBUtils.PARAM_ID, 0);
+                mMovieIsFavorite = isFavorite(mMovieId);
+                updateFabDrawable();
                 new FetchMovieDetails().execute(mMovieId);
                 new FetchMovieTrailers().execute(mMovieId);
                 mButtonShowReviews.setOnClickListener(this);
@@ -142,6 +160,44 @@ public class MovieDetailActivity extends AppCompatActivity implements ReviewAdap
         else if(id == mButtonTrailer3.getId()) {
 
         }
+        else if(id == fab.getId()) {
+            toggleFavorite();
+            updateFabDrawable();
+        }
+    }
+
+    public void toggleFavorite() {
+        FavoritesDB db = FavoritesDB.getInstance(this);
+        MovieEntity movie = new MovieEntity(
+                mMovieId,
+                mPosterByteArray,
+                mMovieTitle,
+                mMovieReleaseYear,
+                mMovieRuntime,
+                mMovieOverview,
+                null);
+        if(mMovieIsFavorite) {
+            db.movieDao().deleteFavorite(movie);
+            mMovieIsFavorite = false;
+            makeText(this, R.string.movie_removed_favorites, Toast.LENGTH_SHORT).show();
+        }
+        else {
+            db.movieDao().addFavorite(movie);
+            mMovieIsFavorite = true;
+            makeText(this, R.string.movie_added_favorites, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public boolean isFavorite(int id) {
+        FavoritesDB db = FavoritesDB.getInstance(this);
+        return !db.movieDao().getFavorite(id).isEmpty();
+    }
+
+    public void updateFabDrawable() {
+        if(mMovieIsFavorite)
+            fab.setImageDrawable(getDrawable(android.R.drawable.btn_star_big_on));
+        else
+            fab.setImageDrawable(getDrawable(android.R.drawable.btn_star_big_off));
     }
 
     public class FetchMovieDetails extends AsyncTask<Integer, Void, JSONObject> {
@@ -164,16 +220,17 @@ public class MovieDetailActivity extends AppCompatActivity implements ReviewAdap
             try {
                 mMovieTitle = movieDetailsJson.getString(MovieDBUtils.PARAM_TITLE);
                 setTitle(mMovieTitle);
-                String releaseYear = movieDetailsJson
+                mMovieReleaseYear = movieDetailsJson
                         .getString(MovieDBUtils.PARAM_RELEASE).substring(0,4);
-                mReleaseDisplay.setText(releaseYear);
-                String runtime = getString(R.string.movie_runtime,
+                mReleaseDisplay.setText(mMovieReleaseYear);
+                mMovieRuntime = getString(R.string.movie_runtime,
                         movieDetailsJson.getString(MovieDBUtils.PARAM_RUNTIME));
-                mRuntimeDisplay.setText(runtime);
-                String vote = getString(R.string.movie_vote,
+                mRuntimeDisplay.setText(mMovieRuntime);
+                mMovieVote = getString(R.string.movie_vote,
                         movieDetailsJson.getString(MovieDBUtils.PARAM_VOTES));
-                mVoteDisplay.setText(vote);
-                mOverviewDisplay.setText(movieDetailsJson.getString(MovieDBUtils.PARAM_OVERVIEW));
+                mVoteDisplay.setText(mMovieVote);
+                mMovieOverview = movieDetailsJson.getString(MovieDBUtils.PARAM_OVERVIEW);
+                mOverviewDisplay.setText(mMovieOverview);
             } catch (JSONException e) {
                 e.printStackTrace();
             }
