@@ -9,7 +9,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -20,8 +19,10 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.greatfilms.Adapters.ReviewAdapter;
 import com.example.greatfilms.Favorites.FavoritesDB;
 import com.example.greatfilms.Favorites.MovieEntity;
+import com.example.greatfilms.TheMovieDB.MovieDBUtils;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import org.json.JSONArray;
@@ -51,15 +52,15 @@ public class MovieDetailActivity extends AppCompatActivity implements ReviewAdap
 
     ReviewAdapter mReviewAdapter;
 
-    public int mMovieId = 0;
-    public byte[] mPosterByteArray;
+    private int mMovieId = 0;
+    private byte[] mPosterByteArray;
     String mMovieTitle;
-    String mMovieReleaseYear;
+    String mMovieReleaseDate;
     String mMovieRuntime;
     String mMovieOverview;
     String mMovieVote;
 
-    boolean mMovieIsFavorite = false;
+    boolean mMovieIsFavorite;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,16 +94,15 @@ public class MovieDetailActivity extends AppCompatActivity implements ReviewAdap
         Intent intent = getIntent();
 
         if(intent != null) {
-            if(intent.hasExtra(MovieDBUtils.PARAM_POSTER)) {
-                mPosterByteArray = intent.getByteArrayExtra(MovieDBUtils.PARAM_POSTER);
+            if(intent.hasExtra(MovieDBUtils.PARAM_POSTER_PATH)) {
+                mPosterByteArray = intent.getByteArrayExtra(MovieDBUtils.PARAM_POSTER_PATH);
                 int imageSize = mPosterByteArray.length;
-                Bitmap posterBitmap = BitmapFactory.decodeByteArray(intent.getByteArrayExtra(MovieDBUtils.PARAM_POSTER),0, imageSize);
+                Bitmap posterBitmap = BitmapFactory.decodeByteArray(intent.getByteArrayExtra(MovieDBUtils.PARAM_POSTER_PATH),0, imageSize);
                 mPosterDisplay.setImageBitmap(posterBitmap);
             }
             if(intent.hasExtra(MovieDBUtils.PARAM_ID)) {
                 mMovieId = intent.getIntExtra(MovieDBUtils.PARAM_ID, 0);
-                mMovieIsFavorite = isFavorite(mMovieId);
-                updateFabDrawable();
+                checkFavorite(mMovieId);
                 new FetchMovieDetails().execute(mMovieId);
                 new FetchMovieTrailers().execute(mMovieId);
                 mButtonShowReviews.setOnClickListener(this);
@@ -162,37 +162,80 @@ public class MovieDetailActivity extends AppCompatActivity implements ReviewAdap
         }
         else if(id == fab.getId()) {
             toggleFavorite();
-            updateFabDrawable();
         }
     }
 
+    /**
+     * Adds a movie to favorite if it is not. Removes a movie from favorites if it is.
+     */
     public void toggleFavorite() {
-        FavoritesDB db = FavoritesDB.getInstance(this);
-        MovieEntity movie = new MovieEntity(
+        if(mMovieId == 0)
+            return;
+        final FavoritesDB db = FavoritesDB.getInstance(getApplicationContext());
+        final MovieEntity movie = new MovieEntity(
                 mMovieId,
                 mPosterByteArray,
                 mMovieTitle,
-                mMovieReleaseYear,
+                mMovieReleaseDate,
                 mMovieRuntime,
                 mMovieOverview,
                 null);
-        if(mMovieIsFavorite) {
-            db.movieDao().deleteFavorite(movie);
-            mMovieIsFavorite = false;
-            makeText(this, R.string.movie_removed_favorites, Toast.LENGTH_SHORT).show();
-        }
-        else {
-            db.movieDao().addFavorite(movie);
-            mMovieIsFavorite = true;
-            makeText(this, R.string.movie_added_favorites, Toast.LENGTH_SHORT).show();
-        }
+        final String movieId = Integer.valueOf(movie.getId()).toString();
+
+        new AsyncTask<Void, Void, Void>() {
+
+            @Override
+            protected Void doInBackground(Void... voids) {
+                if(mMovieIsFavorite) {
+                    db.movieDao().deleteFavorite(movie);
+                    mMovieIsFavorite = false;
+                    Log.d(MovieDetailActivity.class.getSimpleName(), "Unfavorite movie id: " + movieId);
+                }
+                else {
+                    db.movieDao().addFavorite(movie);
+                    mMovieIsFavorite = true;
+                    Log.d(MovieDetailActivity.class.getSimpleName(), "Favorite movie id: " + movieId);
+                }
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void aVoid) {
+                super.onPostExecute(aVoid);
+                updateFabDrawable();
+            }
+        }.execute();
     }
 
-    public boolean isFavorite(int id) {
-        FavoritesDB db = FavoritesDB.getInstance(this);
-        return !db.movieDao().getFavorite(id).isEmpty();
+    /**
+     * Checks if the movie has been marked as favorite by querying the 'favorites' database
+     * @param id The Movie ID corresponding to the primary key in the database
+     * @return true if the movie is in the database
+     */
+    public void checkFavorite(final int id) {
+        final FavoritesDB db = FavoritesDB.getInstance(getApplicationContext());
+
+        new AsyncTask<Void, Void, Boolean>() {
+
+            @Override
+            protected Boolean doInBackground(Void... voids) {
+                boolean result = !db.movieDao().getFavorite(id).isEmpty();
+                return result;
+            }
+
+            @Override
+            protected void onPostExecute(Boolean b) {
+                super.onPostExecute(b);
+                mMovieIsFavorite = b;
+                updateFabDrawable();
+            }
+        }.execute();
     }
 
+    /**
+     * The FAB drawable indicates whether a movie is marked as favorite or not. This function
+     * updates the drawable to represent the current state.
+     */
     public void updateFabDrawable() {
         if(mMovieIsFavorite)
             fab.setImageDrawable(getDrawable(android.R.drawable.btn_star_big_on));
@@ -220,9 +263,9 @@ public class MovieDetailActivity extends AppCompatActivity implements ReviewAdap
             try {
                 mMovieTitle = movieDetailsJson.getString(MovieDBUtils.PARAM_TITLE);
                 setTitle(mMovieTitle);
-                mMovieReleaseYear = movieDetailsJson
-                        .getString(MovieDBUtils.PARAM_RELEASE).substring(0,4);
-                mReleaseDisplay.setText(mMovieReleaseYear);
+                mMovieReleaseDate = movieDetailsJson.getString(MovieDBUtils.PARAM_RELEASE);
+                String releaseYear = mMovieReleaseDate.substring(0,4);
+                mReleaseDisplay.setText(releaseYear);
                 mMovieRuntime = getString(R.string.movie_runtime,
                         movieDetailsJson.getString(MovieDBUtils.PARAM_RUNTIME));
                 mRuntimeDisplay.setText(mMovieRuntime);

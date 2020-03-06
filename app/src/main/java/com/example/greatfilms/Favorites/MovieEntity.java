@@ -26,7 +26,7 @@ public class MovieEntity {
     // The movie title, used for sorting
     private String title;
     // The year the movie was released
-    private String releaseYear;
+    private String releaseDate;
     // The movie runtime in minutes
     private String runtime;
     // The movie overview or synopsis
@@ -39,14 +39,14 @@ public class MovieEntity {
             int id,
             byte[] poster,
             String title,
-            String releaseYear,
+            String releaseDate,
             String runtime,
             String overview,
             Date updatedAt) {
         this.id = id;
         this.poster = poster;
         this.title = title;
-        this.releaseYear = releaseYear;
+        this.releaseDate = releaseDate;
         this.runtime = runtime;
         this.overview = overview;
         this.updatedAt = updatedAt == null ? Calendar.getInstance().getTime() : updatedAt;
@@ -64,8 +64,8 @@ public class MovieEntity {
         return title;
     }
 
-    public String getReleaseYear() {
-        return releaseYear;
+    public String getReleaseDate() {
+        return releaseDate;
     }
 
     public String getRuntime() {

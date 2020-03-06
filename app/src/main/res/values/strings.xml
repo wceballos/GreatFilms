@@ -9,10 +9,11 @@
 
     <string name="movie_poster_description">Movie Poster</string>
 
-    <!-- Sort menu -->
-    <string name="sort_title">Sort</string>
-    <string name="by_ratings">By Ratings</string>
-    <string name="by_popularity">By Popularity</string>
+    <!-- Menu items -->
+    <string name="menu_title">Options</string>
+    <string name="sort_ratings">Sort by Ratings</string>
+    <string name="sort_popularity">Sort by Popularity</string>
+    <string name="show_favorites">Show Favorites</string>
 
 
     <string name="movie_overview_label">synopsis</string>

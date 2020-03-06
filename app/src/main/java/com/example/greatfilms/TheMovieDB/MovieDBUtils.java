@@ -1,4 +1,4 @@
-package com.example.greatfilms;
+package com.example.greatfilms.TheMovieDB;
 
 import android.net.Uri;
 import android.util.Log;
@@ -21,43 +21,45 @@ public class MovieDBUtils {
     final static String API_BASE_URL = "https://api.themoviedb.org/3/movie";
 
     // JSON Params
-    final static String PARAM_POSTER = "poster_path";
-    final static String PARAM_RESULTS = "results";
-    final static String PARAM_ID = "id";
-    final static String PARAM_TITLE = "title";
-    final static String PARAM_OVERVIEW = "overview";
-    final static String PARAM_VOTES = "vote_average";
-    final static String PARAM_RELEASE = "release_date";
-    final static String PARAM_RUNTIME = "runtime";
-    final static String PARAM_VIDEO_SITE = "site";
-    final static String PARAM_VIDEO_TYPE = "type";
-    final static String PARAM_VIDEO_KEY = "key";
-    final static String PARAM_REVIEW_AUTHOR = "author";
-    final static String PARAM_REVIEW_TEXT = "content";
-    final static String PARAM_REVIEW_URL = "url";
+    final public static String PARAM_POSTER_BYTE = "poser_byte_array";
+    final public static String PARAM_POSTER_PATH = "poster_path";
+    final public static String PARAM_RESULTS = "results";
+    final public static String PARAM_TOTAL = "total_results";
+    final public static String PARAM_ID = "id";
+    final public static String PARAM_TITLE = "title";
+    final public static String PARAM_OVERVIEW = "overview";
+    final public static String PARAM_VOTES = "vote_average";
+    final public static String PARAM_RELEASE = "release_date";
+    final public static String PARAM_RUNTIME = "runtime";
+    final public static String PARAM_VIDEO_SITE = "site";
+    final public static String PARAM_VIDEO_TYPE = "type";
+    final public static String PARAM_VIDEO_KEY = "key";
+    final public static String PARAM_REVIEW_AUTHOR = "author";
+    final public static String PARAM_REVIEW_TEXT = "content";
+    final public static String PARAM_REVIEW_URL = "url";
 
     // Movie poster
-    final static String POSTER_BASE_URL = "https://image.tmdb.org/t/p/";
-    final static String POSTER_SIZE = "w500";
+    final public static String POSTER_BASE_URL = "https://image.tmdb.org/t/p/";
+    final public static String POSTER_SIZE = "w500";
 
     // Youtube
-    final static String YT_BASE_URL = "https://www.youtube.com/watch";
-    final static String YT_VIDEO_TYPE = "Trailer";
-    final static String YT_VIDEO_SITE = "YouTube";
+    final public static String YT_BASE_URL = "https://www.youtube.com/watch";
+    final public static String YT_VIDEO_TYPE = "Trailer";
+    final public static String YT_VIDEO_SITE = "YouTube";
 
     // Query parameters
-    final static String QUERY_PARAM_API_KEY = "api_key";
-    final static String QUERY_PARAM_YT_VIDEO = "v";
+    final public static String QUERY_PARAM_API_KEY = "api_key";
+    final public static String QUERY_PARAM_YT_VIDEO = "v";
 
 
     // Sorting options
-    final static String PATH_SORT_RATINGS = "top_rated";
-    final static String PATH_SORT_POPULARITY = "popular";
+    final public static String PATH_SORT_RATINGS = "top_rated";
+    final public static String PATH_SORT_POPULARITY = "popular";
 
     // Movie info paths
-    final static String PATH_DETAILS = ""; // There is no path name for this
-    final static String PATH_REVIEWS = "reviews";
-    final static String PATH_VIDEOS  = "videos";
+    final public static String PATH_DETAILS = ""; // There is no path name for this
+    final public static String PATH_REVIEWS = "reviews";
+    final public static String PATH_VIDEOS  = "videos";
 
     // The Movie DB API key
     static private String apiKey;

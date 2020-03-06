@@ -4,10 +4,10 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.text.TextUtils;
-import android.text.method.MovementMethod;
 import android.view.View;
 import android.widget.TextView;
+
+import com.example.greatfilms.TheMovieDB.MovieDBUtils;
 
 public class MovieReviewActivity extends AppCompatActivity {
 

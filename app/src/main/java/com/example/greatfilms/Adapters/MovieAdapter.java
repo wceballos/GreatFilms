@@ -1,6 +1,8 @@
-package com.example.greatfilms;
+package com.example.greatfilms.Adapters;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,6 +12,9 @@ import android.widget.ImageView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.greatfilms.Favorites.FavoritesDBUtils;
+import com.example.greatfilms.R;
+import com.example.greatfilms.TheMovieDB.MovieDBUtils;
 import com.squareup.picasso.Picasso;
 
 import org.json.JSONArray;
@@ -87,14 +92,21 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MoviesAdapte
     @Override
     public void onBindViewHolder(@NonNull MoviesAdapterViewHolder holder, int position) {
         try {
-            Uri posterUri = MovieDBUtils.getMoviePosterUri(
-                    mMovieData.getJSONObject(position).getString(MovieDBUtils.PARAM_POSTER));
-            Picasso.get()
-                    .load(posterUri)
-                    .error(R.drawable.ic_launcher_foreground)
-                    .into(holder.mMoviePosterImageView);
-        } catch (JSONException e) {
-            e.printStackTrace();
+            byte[] posterBytes = FavoritesDBUtils.posterToBytes(
+                    mMovieData.getJSONObject(position).getString(MovieDBUtils.PARAM_POSTER_BYTE));
+            Bitmap posterBitmap = BitmapFactory.decodeByteArray(posterBytes, 0, posterBytes.length);
+            holder.mMoviePosterImageView.setImageBitmap(posterBitmap);
+        } catch (JSONException e1) {
+            try {
+                Uri posterUri = MovieDBUtils.getMoviePosterUri(
+                        mMovieData.getJSONObject(position).getString(MovieDBUtils.PARAM_POSTER_PATH));
+                Picasso.get()
+                        .load(posterUri)
+                        .error(R.drawable.ic_launcher_foreground)
+                        .into(holder.mMoviePosterImageView);
+            } catch (JSONException e2) {
+                e2.printStackTrace();
+            }
         }
     }
 

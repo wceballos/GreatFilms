@@ -18,6 +18,10 @@ import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import com.example.greatfilms.Adapters.MovieAdapter;
+import com.example.greatfilms.Favorites.FavoritesDBUtils;
+import com.example.greatfilms.TheMovieDB.MovieDBUtils;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -35,6 +39,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
     MovieAdapter mMovieAdapter;
 
     String mSortSetting = MovieDBUtils.PATH_SORT_RATINGS;
+    final String SHOW_FAVORITES = "favorites";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,6 +87,9 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
                 mSortSetting = MovieDBUtils.PATH_SORT_RATINGS;
                 loadMovieGrid(mSortSetting);
                 break;
+            case R.id.show_favorites:
+                mMovieAdapter.setMovieData(null);
+                loadMovieGrid(SHOW_FAVORITES);
         }
         return super.onOptionsItemSelected(item);
     }
@@ -106,7 +114,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         ByteArrayOutputStream bs = new ByteArrayOutputStream();
         posterBitmap.compress(Bitmap.CompressFormat.JPEG, 50, bs);
 
-        intentToStartDetailActivity.putExtra(MovieDBUtils.PARAM_POSTER, bs.toByteArray());
+        intentToStartDetailActivity.putExtra(MovieDBUtils.PARAM_POSTER_PATH, bs.toByteArray());
 
         if(intentToStartDetailActivity.resolveActivity(getPackageManager()) != null) {
             startActivity(intentToStartDetailActivity);
@@ -147,7 +155,12 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
 
         @Override
         protected JSONObject doInBackground(String... sortOption) {
-            return MovieDBUtils.getSortedMoviesJson(sortOption[0]);
+            JSONObject movies;
+            if(sortOption[0].equals(SHOW_FAVORITES))
+                movies = FavoritesDBUtils.getFavorites(getApplicationContext());
+            else
+                movies = MovieDBUtils.getSortedMoviesJson(sortOption[0]);
+            return movies;
         }
 
         @Override

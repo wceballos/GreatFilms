@@ -1,4 +1,4 @@
-package com.example.greatfilms;
+package com.example.greatfilms.Adapters;
 
 import android.content.Context;
 import android.text.TextUtils;
@@ -9,6 +9,9 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.greatfilms.R;
+import com.example.greatfilms.TheMovieDB.MovieDBUtils;
 
 import org.json.JSONArray;
 import org.json.JSONException;

@@ -5,18 +5,16 @@
     tools:context=".MainActivity">
 
     <item
-        android:id="@+id/action_sort"
-        android:title="@string/sort_title"
-        app:showAsAction="always">
+        android:id="@+id/sort_popularity"
+        android:title="@string/sort_popularity"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/sort_ratings"
+        android:title="@string/sort_ratings"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/show_favorites"
+        android:title="@string/show_favorites"
+        app:showAsAction="never"/>
 
-        <menu>
-            <item
-                android:id="@+id/sort_popularity"
-                android:title="@string/by_popularity"/>
-            <item
-                android:id="@+id/sort_ratings"
-                android:title="@string/by_ratings"/>
-        </menu>
-
-    </item>
 </menu>
