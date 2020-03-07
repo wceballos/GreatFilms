@@ -21,6 +21,7 @@ public class MovieDBUtils {
     final static String API_BASE_URL = "https://api.themoviedb.org/3/movie";
 
     // JSON Params
+    final public static String PARAM_LOCAL_DATA = "local_data";
     final public static String PARAM_POSTER_BYTE = "poser_byte_array";
     final public static String PARAM_POSTER_PATH = "poster_path";
     final public static String PARAM_RESULTS = "results";

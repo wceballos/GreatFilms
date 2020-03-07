@@ -20,6 +20,7 @@ import android.widget.Toast;
 
 import com.example.greatfilms.Adapters.MovieAdapter;
 import com.example.greatfilms.Favorites.FavoritesDBUtils;
+import com.example.greatfilms.NetworkUtils.Network;
 import com.example.greatfilms.TheMovieDB.MovieDBUtils;
 
 import org.json.JSONArray;
@@ -97,11 +98,32 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
     @Override
     public void onClick(View view, JSONObject movie) {
         Context context = this;
+
         Class destinationClass = MovieDetailActivity.class;
         Intent intentToStartDetailActivity = new Intent(context, destinationClass);
         try {
             intentToStartDetailActivity
                     .putExtra(MovieDBUtils.PARAM_ID, movie.getInt(MovieDBUtils.PARAM_ID));
+            if(movie.has(MovieDBUtils.PARAM_TITLE)) {
+                intentToStartDetailActivity
+                        .putExtra(MovieDBUtils.PARAM_TITLE, movie.getString(MovieDBUtils.PARAM_TITLE));
+            }
+            if(movie.has(MovieDBUtils.PARAM_RELEASE)) {
+                intentToStartDetailActivity
+                        .putExtra(MovieDBUtils.PARAM_RELEASE, movie.getString(MovieDBUtils.PARAM_RELEASE));
+            }
+            if(movie.has(MovieDBUtils.PARAM_RUNTIME)) {
+                intentToStartDetailActivity
+                        .putExtra(MovieDBUtils.PARAM_RUNTIME, movie.getString(MovieDBUtils.PARAM_RUNTIME));
+            }
+            if(movie.has(MovieDBUtils.PARAM_OVERVIEW)) {
+                intentToStartDetailActivity
+                        .putExtra(MovieDBUtils.PARAM_OVERVIEW, movie.getString(MovieDBUtils.PARAM_OVERVIEW));
+            }
+            if(movie.has(MovieDBUtils.PARAM_LOCAL_DATA)) {
+                intentToStartDetailActivity
+                        .putExtra(MovieDBUtils.PARAM_LOCAL_DATA, movie.getBoolean(MovieDBUtils.PARAM_LOCAL_DATA));
+            }
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -114,25 +136,19 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         ByteArrayOutputStream bs = new ByteArrayOutputStream();
         posterBitmap.compress(Bitmap.CompressFormat.JPEG, 50, bs);
 
-        intentToStartDetailActivity.putExtra(MovieDBUtils.PARAM_POSTER_PATH, bs.toByteArray());
+        intentToStartDetailActivity.putExtra(MovieDBUtils.PARAM_POSTER_BYTE, bs.toByteArray());
 
         if(intentToStartDetailActivity.resolveActivity(getPackageManager()) != null) {
             startActivity(intentToStartDetailActivity);
         }
     }
 
-    private boolean isNetworkAvailable() {
-        ConnectivityManager cm =
-                (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        /*if(cm.getActiveNetwork() == null) {
-            return false;
-        }*/
-        return true;
-    }
-
     private void loadMovieGrid(String sortMethod) {
         showMovieGridView();
-        if(isNetworkAvailable()) {
+        if(sortMethod.equals(SHOW_FAVORITES)) {
+            new FetchSortedMovies().execute(sortMethod);
+        }
+        else if(Network.isNetworkAvailable(this)) {
             new FetchSortedMovies().execute(sortMethod);
         }
         else {

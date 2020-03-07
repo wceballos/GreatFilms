@@ -22,6 +22,7 @@ import android.widget.Toast;
 import com.example.greatfilms.Adapters.ReviewAdapter;
 import com.example.greatfilms.Favorites.FavoritesDB;
 import com.example.greatfilms.Favorites.MovieEntity;
+import com.example.greatfilms.NetworkUtils.Network;
 import com.example.greatfilms.TheMovieDB.MovieDBUtils;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
@@ -30,6 +31,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.concurrent.ExecutionException;
 
 import static android.widget.Toast.makeText;
 
@@ -90,25 +92,84 @@ public class MovieDetailActivity extends AppCompatActivity implements ReviewAdap
         mReviewAdapter = new ReviewAdapter(this);
         mReviewRecycler.setAdapter(mReviewAdapter);
         fab.setOnClickListener(this);
+        mButtonShowReviews.setOnClickListener(this);
 
         Intent intent = getIntent();
 
         if(intent != null) {
-            if(intent.hasExtra(MovieDBUtils.PARAM_POSTER_PATH)) {
-                mPosterByteArray = intent.getByteArrayExtra(MovieDBUtils.PARAM_POSTER_PATH);
-                int imageSize = mPosterByteArray.length;
-                Bitmap posterBitmap = BitmapFactory.decodeByteArray(intent.getByteArrayExtra(MovieDBUtils.PARAM_POSTER_PATH),0, imageSize);
-                mPosterDisplay.setImageBitmap(posterBitmap);
-            }
-            if(intent.hasExtra(MovieDBUtils.PARAM_ID)) {
+            if(intent.hasExtra(MovieDBUtils.PARAM_POSTER_BYTE))
+                mPosterByteArray = intent.getByteArrayExtra(MovieDBUtils.PARAM_POSTER_BYTE);
+            if(intent.hasExtra(MovieDBUtils.PARAM_ID))
                 mMovieId = intent.getIntExtra(MovieDBUtils.PARAM_ID, 0);
-                checkFavorite(mMovieId);
+            if(intent.hasExtra(MovieDBUtils.PARAM_LOCAL_DATA)) {
+                mMovieIsFavorite = true;
+                updateFabDrawable();
+            }
+
+            /*
+             * For some reason toolbar title needs to be nullified before changing it to
+             * the actual movie title
+             */
+            setTitle(null);
+
+            /*
+             * Movie details will be loaded from network when network is available.
+             * If network is not available, we'll try to load local data, such as from the
+             * favorite movie database.
+             */
+            if(Network.isNetworkAvailable(this)) {
                 new FetchMovieDetails().execute(mMovieId);
                 new FetchMovieTrailers().execute(mMovieId);
-                mButtonShowReviews.setOnClickListener(this);
-                setTitle(mMovieTitle);
             }
+            else if (mMovieIsFavorite) {
+                if(intent.hasExtra(MovieDBUtils.PARAM_TITLE))
+                    mMovieTitle = intent.getStringExtra(MovieDBUtils.PARAM_TITLE);
+                if(intent.hasExtra(MovieDBUtils.PARAM_RELEASE))
+                    mMovieReleaseDate = intent.getStringExtra(MovieDBUtils.PARAM_RELEASE);
+                if(intent.hasExtra(MovieDBUtils.PARAM_RUNTIME))
+                    mMovieRuntime = intent.getStringExtra(MovieDBUtils.PARAM_RUNTIME);
+                if(intent.hasExtra(MovieDBUtils.PARAM_OVERVIEW))
+                    mMovieOverview = intent.getStringExtra(MovieDBUtils.PARAM_OVERVIEW);
+                setViewContent();
+                String toastMsg = getString(R.string.error_no_network);
+                makeText(getApplicationContext(), toastMsg, Toast.LENGTH_SHORT).show();
+            }
+            else {
+                String toastMsg = getString(R.string.error_no_network);
+                makeText(getApplicationContext(), toastMsg, Toast.LENGTH_SHORT).show();
+                finish();
+            }
+
+        } // if(intent != null)
+    }
+
+    public void setViewContent() {
+        if (mMovieTitle != null)
+            setTitle(mMovieTitle);
+
+        if(mPosterByteArray != null) {
+            int imageSize = mPosterByteArray.length;
+            Bitmap posterBitmap = BitmapFactory.decodeByteArray(mPosterByteArray, 0, imageSize);
+            mPosterDisplay.setImageBitmap(posterBitmap);
         }
+
+        if (mMovieReleaseDate != null) {
+            String releaseYear = mMovieReleaseDate.substring(0, 4);
+            mReleaseDisplay.setText(releaseYear);
+        }
+
+        if (mMovieRuntime != null) {
+            String runtimeFormatted = getString(R.string.movie_runtime, mMovieRuntime);
+            mRuntimeDisplay.setText(runtimeFormatted);
+        }
+
+        if(mMovieVote != null) {
+            String voteFormatted = getString(R.string.movie_vote, mMovieVote);
+            mVoteDisplay.setText(voteFormatted);
+        }
+
+        if(mMovieOverview != null)
+            mOverviewDisplay.setText(mMovieOverview);
     }
 
     /**
@@ -208,31 +269,6 @@ public class MovieDetailActivity extends AppCompatActivity implements ReviewAdap
     }
 
     /**
-     * Checks if the movie has been marked as favorite by querying the 'favorites' database
-     * @param id The Movie ID corresponding to the primary key in the database
-     * @return true if the movie is in the database
-     */
-    public void checkFavorite(final int id) {
-        final FavoritesDB db = FavoritesDB.getInstance(getApplicationContext());
-
-        new AsyncTask<Void, Void, Boolean>() {
-
-            @Override
-            protected Boolean doInBackground(Void... voids) {
-                boolean result = !db.movieDao().getFavorite(id).isEmpty();
-                return result;
-            }
-
-            @Override
-            protected void onPostExecute(Boolean b) {
-                super.onPostExecute(b);
-                mMovieIsFavorite = b;
-                updateFabDrawable();
-            }
-        }.execute();
-    }
-
-    /**
      * The FAB drawable indicates whether a movie is marked as favorite or not. This function
      * updates the drawable to represent the current state.
      */
@@ -262,21 +298,14 @@ public class MovieDetailActivity extends AppCompatActivity implements ReviewAdap
 
             try {
                 mMovieTitle = movieDetailsJson.getString(MovieDBUtils.PARAM_TITLE);
-                setTitle(mMovieTitle);
                 mMovieReleaseDate = movieDetailsJson.getString(MovieDBUtils.PARAM_RELEASE);
-                String releaseYear = mMovieReleaseDate.substring(0,4);
-                mReleaseDisplay.setText(releaseYear);
-                mMovieRuntime = getString(R.string.movie_runtime,
-                        movieDetailsJson.getString(MovieDBUtils.PARAM_RUNTIME));
-                mRuntimeDisplay.setText(mMovieRuntime);
-                mMovieVote = getString(R.string.movie_vote,
-                        movieDetailsJson.getString(MovieDBUtils.PARAM_VOTES));
-                mVoteDisplay.setText(mMovieVote);
+                mMovieRuntime = movieDetailsJson.getString(MovieDBUtils.PARAM_RUNTIME);
+                mMovieVote = movieDetailsJson.getString(MovieDBUtils.PARAM_VOTES);
                 mMovieOverview = movieDetailsJson.getString(MovieDBUtils.PARAM_OVERVIEW);
-                mOverviewDisplay.setText(mMovieOverview);
             } catch (JSONException e) {
                 e.printStackTrace();
             }
+            setViewContent();
         }
     }
 

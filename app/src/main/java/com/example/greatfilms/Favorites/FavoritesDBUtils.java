@@ -34,7 +34,9 @@ public class FavoritesDBUtils {
                         .put(MovieDBUtils.PARAM_TITLE, item.getTitle())
                         .put(MovieDBUtils.PARAM_RELEASE, item.getReleaseDate())
                         .put(MovieDBUtils.PARAM_RUNTIME, item.getRuntime())
-                        .put(MovieDBUtils.PARAM_OVERVIEW, item.getOverview());
+                        .put(MovieDBUtils.PARAM_OVERVIEW, item.getOverview())
+                        // To help identify that a movie is in the database
+                        .put(MovieDBUtils.PARAM_LOCAL_DATA, true);
                 resultsArray.put(movieJson);
             }
             catch (JSONException e) {
