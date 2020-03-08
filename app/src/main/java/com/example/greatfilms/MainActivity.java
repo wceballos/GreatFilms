@@ -2,15 +2,17 @@ package com.example.greatfilms;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.Observer;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -19,7 +21,9 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.example.greatfilms.Adapters.MovieAdapter;
+import com.example.greatfilms.Favorites.FavoritesDB;
 import com.example.greatfilms.Favorites.FavoritesDBUtils;
+import com.example.greatfilms.Favorites.MovieEntity;
 import com.example.greatfilms.NetworkUtils.Network;
 import com.example.greatfilms.TheMovieDB.MovieDBUtils;
 
@@ -28,6 +32,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
+import java.util.List;
 
 import static android.widget.Toast.makeText;
 
@@ -41,12 +46,19 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
 
     String mSortSetting = MovieDBUtils.PATH_SORT_RATINGS;
     final String SHOW_FAVORITES = "favorites";
+    JSONObject mFavoriteMoviesJson;
+    final String SORT_SETTING_KEY = "sortKey";
+    final String TAG = MainActivity.class.getSimpleName();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        if(savedInstanceState != null) {
+            mSortSetting = savedInstanceState.getString(SORT_SETTING_KEY);
+            Log.d(TAG, "Sort setting " + mSortSetting);
+        }
         MovieDBUtils.setApiKey(API_KEY);
 
         mMovieRecycler = (RecyclerView) findViewById(R.id.rv_movies);
@@ -63,7 +75,33 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         mMovieAdapter = new MovieAdapter(this);
         mMovieRecycler.setAdapter(mMovieAdapter);
 
-        loadMovieGrid(mSortSetting);
+        retrieveFavorites();
+        if(!mSortSetting.equals(SHOW_FAVORITES))
+            loadMovieGrid(mSortSetting);
+    }
+
+    public void retrieveFavorites() {
+        final LiveData<List<MovieEntity>> movies = FavoritesDB
+                .getInstance(getApplicationContext())
+                .movieDao()
+                .loadAllFavorites();
+        mFavoriteMoviesJson = FavoritesDBUtils.dbEntriesToJson(movies.getValue());
+        movies.observe(this, new Observer<List<MovieEntity>>() {
+            @Override
+            public void onChanged(List<MovieEntity> movieEntities) {
+                mFavoriteMoviesJson = FavoritesDBUtils.dbEntriesToJson(movieEntities);
+                if(mSortSetting.equals(SHOW_FAVORITES)) {
+                    Log.d(TAG, "Receiving database update from LiveData");
+                    loadMovieGrid(mSortSetting);
+                }
+            }
+        });
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle savedInstanceState) {
+        savedInstanceState.putString(SORT_SETTING_KEY, mSortSetting);
+        super.onSaveInstanceState(savedInstanceState);
     }
 
     @Override
@@ -90,6 +128,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
                 break;
             case R.id.show_favorites:
                 mMovieAdapter.setMovieData(null);
+                mSortSetting = SHOW_FAVORITES;
                 loadMovieGrid(SHOW_FAVORITES);
         }
         return super.onOptionsItemSelected(item);
@@ -145,10 +184,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
 
     private void loadMovieGrid(String sortMethod) {
         showMovieGridView();
-        if(sortMethod.equals(SHOW_FAVORITES)) {
-            new FetchSortedMovies().execute(sortMethod);
-        }
-        else if(Network.isNetworkAvailable(this)) {
+        if(sortMethod.equals(SHOW_FAVORITES) || Network.isNetworkAvailable(this)) {
             new FetchSortedMovies().execute(sortMethod);
         }
         else {
@@ -172,20 +208,21 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         @Override
         protected JSONObject doInBackground(String... sortOption) {
             JSONObject movies;
-            if(sortOption[0].equals(SHOW_FAVORITES))
-                movies = FavoritesDBUtils.getFavorites(getApplicationContext());
+            if(sortOption[0].equals(SHOW_FAVORITES)) {
+                movies = mFavoriteMoviesJson;
+            }
             else
                 movies = MovieDBUtils.getSortedMoviesJson(sortOption[0]);
             return movies;
         }
 
         @Override
-        protected void onPostExecute(JSONObject moviesJSON) {
+        protected void onPostExecute(final JSONObject moviesJSON) {
             super.onPostExecute(moviesJSON);
             mLoadingIndicator.setVisibility(View.INVISIBLE);
+            String errorToastMsg = getString(R.string.error_movies);
             if(moviesJSON == null) {
-                String toastMsg = getString(R.string.error_movies);
-                makeText(getApplicationContext(), toastMsg, Toast.LENGTH_LONG).show();
+                makeText(getApplicationContext(), errorToastMsg, Toast.LENGTH_LONG).show();
                 return;
             }
 
@@ -194,6 +231,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
                 results = moviesJSON.getJSONArray(MovieDBUtils.PARAM_RESULTS);
                 mMovieAdapter.setMovieData(results);
             } catch (JSONException e) {
+                makeText(getApplicationContext(), errorToastMsg, Toast.LENGTH_LONG).show();
                 e.printStackTrace();
             }
         }

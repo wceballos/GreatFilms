@@ -1,7 +1,11 @@
 package com.example.greatfilms.Favorites;
 
 import android.content.Context;
+import android.content.Entity;
 import android.util.Base64;
+
+import androidx.annotation.Nullable;
+import androidx.lifecycle.LiveData;
 
 import com.example.greatfilms.TheMovieDB.MovieDBUtils;
 
@@ -13,34 +17,26 @@ import java.util.List;
 
 public class FavoritesDBUtils {
 
-    /**
-     * Converts the database into a JSONObject for compatibility with the MovieAdapter class.
-     *
-     * @param context The application context to access the database.
-     * @return JSON representation of the database.
-     */
-    public static JSONObject getFavorites(Context context) {
-        FavoritesDB db = FavoritesDB.getInstance(context);
-        List<MovieEntity> dbEntries = db.movieDao().loadAllFavorites();
-
+    public static JSONObject dbEntriesToJson(List<MovieEntity> movieEntities) {
         JSONObject rootJson = new JSONObject();
         JSONArray resultsArray = new JSONArray();
 
-        for(MovieEntity item : dbEntries) {
-            try {
-                JSONObject movieJson = new JSONObject()
-                        .put(MovieDBUtils.PARAM_ID, item.getId())
-                        .put(MovieDBUtils.PARAM_POSTER_BYTE, posterToString(item.getPoster()))
-                        .put(MovieDBUtils.PARAM_TITLE, item.getTitle())
-                        .put(MovieDBUtils.PARAM_RELEASE, item.getReleaseDate())
-                        .put(MovieDBUtils.PARAM_RUNTIME, item.getRuntime())
-                        .put(MovieDBUtils.PARAM_OVERVIEW, item.getOverview())
-                        // To help identify that a movie is in the database
-                        .put(MovieDBUtils.PARAM_LOCAL_DATA, true);
-                resultsArray.put(movieJson);
-            }
-            catch (JSONException e) {
-                e.printStackTrace();
+        if(movieEntities != null) {
+            for (MovieEntity item : movieEntities) {
+                try {
+                    JSONObject movieJson = new JSONObject()
+                            .put(MovieDBUtils.PARAM_ID, item.getId())
+                            .put(MovieDBUtils.PARAM_POSTER_BYTE, posterToString(item.getPoster()))
+                            .put(MovieDBUtils.PARAM_TITLE, item.getTitle())
+                            .put(MovieDBUtils.PARAM_RELEASE, item.getReleaseDate())
+                            .put(MovieDBUtils.PARAM_RUNTIME, item.getRuntime())
+                            .put(MovieDBUtils.PARAM_OVERVIEW, item.getOverview())
+                            // To help identify that a movie is in the database
+                            .put(MovieDBUtils.PARAM_LOCAL_DATA, true);
+                    resultsArray.put(movieJson);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
             }
         }
 
