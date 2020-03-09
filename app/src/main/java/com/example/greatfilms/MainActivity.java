@@ -43,12 +43,16 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
     RecyclerView mMovieRecycler;
     ProgressBar mLoadingIndicator;
     MovieAdapter mMovieAdapter;
+    GridLayoutManager mGridLayoutManager;
 
     String mSortSetting = MovieDBUtils.PATH_SORT_RATINGS;
     final String SHOW_FAVORITES = "favorites";
     JSONObject mFavoriteMoviesJson;
     final String SORT_SETTING_KEY = "sortKey";
+    final String SCROLL_POSITION_KEY = "scrollPosKey";
     final String TAG = MainActivity.class.getSimpleName();
+
+    int mScrollPosition = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,6 +61,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
 
         if(savedInstanceState != null) {
             mSortSetting = savedInstanceState.getString(SORT_SETTING_KEY);
+            mScrollPosition = savedInstanceState.getInt(SCROLL_POSITION_KEY);
             Log.d(TAG, "Sort setting " + mSortSetting);
         }
         MovieDBUtils.setApiKey(API_KEY);
@@ -68,8 +73,8 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
          * https://stackoverflow.com/questions/40587168/simple-android-grid-example-using-recyclerview-with-gridlayoutmanager-like-the
          */
         int numberOfColumns = getResources().getInteger(R.integer.moviePosterColumns);
-        GridLayoutManager gridLayoutManager = new GridLayoutManager(this, numberOfColumns);
-        mMovieRecycler.setLayoutManager(gridLayoutManager);
+        mGridLayoutManager = new GridLayoutManager(this, numberOfColumns);
+        mMovieRecycler.setLayoutManager(mGridLayoutManager);
         //mMovieRecycler.setLayoutManager(new GridLayoutManager(this, numberOfColumns));
 
         mMovieAdapter = new MovieAdapter(this);
@@ -97,6 +102,8 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
     @Override
     protected void onSaveInstanceState(Bundle savedInstanceState) {
         savedInstanceState.putString(SORT_SETTING_KEY, mSortSetting);
+        mScrollPosition = mGridLayoutManager.findFirstVisibleItemPosition();
+        savedInstanceState.putInt(SCROLL_POSITION_KEY, mScrollPosition);
         super.onSaveInstanceState(savedInstanceState);
     }
 
@@ -222,6 +229,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
             try {
                 results = moviesJSON.getJSONArray(MovieDBUtils.PARAM_RESULTS);
                 mMovieAdapter.setMovieData(results);
+                mGridLayoutManager.scrollToPosition(mScrollPosition);
             } catch (JSONException e) {
                 makeText(getApplicationContext(), errorToastMsg, Toast.LENGTH_LONG).show();
                 e.printStackTrace();
