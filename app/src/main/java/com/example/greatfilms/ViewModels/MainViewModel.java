@@ -1,4 +1,4 @@
-package com.example.greatfilms;
+package com.example.greatfilms.ViewModels;
 
 import android.app.Application;
 

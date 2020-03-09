@@ -1,7 +1,7 @@
 package com.example.greatfilms;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
+import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -24,6 +24,7 @@ import com.example.greatfilms.Favorites.FavoritesDB;
 import com.example.greatfilms.Favorites.MovieEntity;
 import com.example.greatfilms.NetworkUtils.Network;
 import com.example.greatfilms.TheMovieDB.MovieDBUtils;
+import com.example.greatfilms.ViewModels.MovieDetailViewModel;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import org.json.JSONArray;
@@ -31,11 +32,12 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.concurrent.ExecutionException;
+import java.util.Objects;
 
 import static android.widget.Toast.makeText;
 
-public class MovieDetailActivity extends AppCompatActivity implements ReviewAdapter.ReviewAdapterOnClickHandler, View.OnClickListener {
+public class MovieDetailActivity extends AppCompatActivity
+        implements ReviewAdapter.ReviewAdapterOnClickHandler, View.OnClickListener {
 
     private ImageView mPosterDisplay;
     private TextView mReleaseDisplay;
@@ -54,15 +56,17 @@ public class MovieDetailActivity extends AppCompatActivity implements ReviewAdap
 
     ReviewAdapter mReviewAdapter;
 
-    private int mMovieId = 0;
-    private byte[] mPosterByteArray;
-    String mMovieTitle;
-    String mMovieReleaseDate;
-    String mMovieRuntime;
-    String mMovieOverview;
-    String mMovieVote;
-
-    boolean mMovieIsFavorite;
+     private int mMovieId = 0;
+     private byte[] mPosterByteArray;
+     String mMovieTitle;
+     String mMovieReleaseDate;
+     String mMovieRuntime;
+     String mMovieOverview;
+     String mMovieVote;
+    boolean mIsFavoriteMovie;
+    private MovieDetailViewModel mViewModel;
+    ArrayList<Uri> mMovieTrailerUris;
+    JSONArray mMovieReviews;
 
     final String TAG = MovieDetailActivity.class.getSimpleName();
 
@@ -70,24 +74,26 @@ public class MovieDetailActivity extends AppCompatActivity implements ReviewAdap
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_movie_detail);
-        androidx.appcompat.widget.Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        androidx.appcompat.widget.Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
 
-        mPosterDisplay     = (ImageView)    findViewById(R.id.iv_movie_poster);
-        mReleaseDisplay    = (TextView)     findViewById(R.id.tv_movie_release);
-        mRuntimeDisplay    = (TextView)     findViewById(R.id.tv_movie_runtime);
-        mVoteDisplay       = (TextView)     findViewById(R.id.tv_movie_vote);
-        mOverviewDisplay   = (TextView)     findViewById(R.id.tv_movie_overview);
-        mNoTrailers        = (TextView)     findViewById(R.id.tv_no_trailers);
-        mReviewsLabel      = (TextView)     findViewById(R.id.tv_movie_reviews_label);
-        mNoReviews         = (TextView)     findViewById(R.id.tv_no_reviews);
-        mButtonTrailer1    = (Button)       findViewById(R.id.btn_trailer1);
-        mButtonTrailer2    = (Button)       findViewById(R.id.btn_trailer2);
-        mButtonTrailer3    = (Button)       findViewById(R.id.btn_trailer3);
-        mButtonShowReviews = (Button)       findViewById(R.id.btn_show_reviews);
-        mReviewRecycler    = (RecyclerView) findViewById(R.id.rv_reviews);
-        fab                = (FloatingActionButton) findViewById(R.id.fab_mark_favorite);
+        mViewModel = ViewModelProviders.of(this).get(MovieDetailViewModel.class);
+
+        mPosterDisplay     = findViewById(R.id.iv_movie_poster);
+        mReleaseDisplay    = findViewById(R.id.tv_movie_release);
+        mRuntimeDisplay    = findViewById(R.id.tv_movie_runtime);
+        mVoteDisplay       = findViewById(R.id.tv_movie_vote);
+        mOverviewDisplay   = findViewById(R.id.tv_movie_overview);
+        mNoTrailers        = findViewById(R.id.tv_no_trailers);
+        mReviewsLabel      = findViewById(R.id.tv_movie_reviews_label);
+        mNoReviews         = findViewById(R.id.tv_no_reviews);
+        mButtonTrailer1    = findViewById(R.id.btn_trailer1);
+        mButtonTrailer2    = findViewById(R.id.btn_trailer2);
+        mButtonTrailer3    = findViewById(R.id.btn_trailer3);
+        mButtonShowReviews = findViewById(R.id.btn_show_reviews);
+        mReviewRecycler    = findViewById(R.id.rv_reviews);
+        fab                = findViewById(R.id.fab_mark_favorite);
 
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         mReviewRecycler.setLayoutManager(linearLayoutManager);
@@ -98,47 +104,37 @@ public class MovieDetailActivity extends AppCompatActivity implements ReviewAdap
 
         Intent intent = getIntent();
 
-        if(intent != null) {
-            if(intent.hasExtra(MovieDBUtils.PARAM_ID))
+        if(mViewModel.getMovieId() != 0) {
+            restoreFromViewModel();
+        }
+        else if(intent != null) {
+            if(intent.hasExtra(MovieDBUtils.PARAM_ID)) {
                 mMovieId = intent.getIntExtra(MovieDBUtils.PARAM_ID, 0);
-
-            /*
-             * For some reason toolbar title needs to be nullified before changing it to
-             * the actual movie title
-             */
-            setTitle(null);
-            new PopulateUI().execute(mMovieId);
-
+                mViewModel.setMovieId(mMovieId);
+                setTitle(null);
+                new PopulateUI().execute(mMovieId);
+            }
         } // if(intent != null)
-    }
+    } // onCreate(Bundle savedInstanceState)
 
-    public void setViewContent() {
-        if (mMovieTitle != null)
-            setTitle(mMovieTitle);
-
-        if(mPosterByteArray != null) {
-            int imageSize = mPosterByteArray.length;
-            Bitmap posterBitmap = BitmapFactory.decodeByteArray(mPosterByteArray, 0, imageSize);
-            mPosterDisplay.setImageBitmap(posterBitmap);
-        }
-
-        if (mMovieReleaseDate != null) {
-            String releaseYear = mMovieReleaseDate.substring(0, 4);
-            mReleaseDisplay.setText(releaseYear);
-        }
-
-        if (mMovieRuntime != null) {
-            String runtimeFormatted = getString(R.string.movie_runtime, mMovieRuntime);
-            mRuntimeDisplay.setText(runtimeFormatted);
-        }
-
-        if(mMovieVote != null) {
-            String voteFormatted = getString(R.string.movie_vote, mMovieVote);
-            mVoteDisplay.setText(voteFormatted);
-        }
-
-        if(mMovieOverview != null)
-            mOverviewDisplay.setText(mMovieOverview);
+    /**
+     * onClick Handler for all buttons.
+     *
+     * @param button The Button View that was clicked.
+     */
+    @Override
+    public void onClick(View button) {
+        int id = button.getId();
+        if(id == mButtonShowReviews.getId())
+            showReviews();
+        else if(id == mButtonTrailer1.getId())
+            playTrailer(mMovieTrailerUris.get(0));
+        else if(id == mButtonTrailer2.getId())
+            playTrailer(mMovieTrailerUris.get(1));
+        else if(id == mButtonTrailer3.getId())
+            playTrailer(mMovieTrailerUris.get(2));
+        else if(id == fab.getId())
+            toggleFavorite();
     }
 
     /**
@@ -158,45 +154,152 @@ public class MovieDetailActivity extends AppCompatActivity implements ReviewAdap
                     .putExtra(MovieDBUtils.PARAM_REVIEW_AUTHOR, review.getString(MovieDBUtils.PARAM_REVIEW_AUTHOR))
                     .putExtra(MovieDBUtils.PARAM_REVIEW_TEXT, review.getString(MovieDBUtils.PARAM_REVIEW_TEXT))
                     .putExtra(MovieDBUtils.PARAM_TITLE, mMovieTitle);
+            if(reviewActivityIntent.resolveActivity(getPackageManager()) != null) {
+                startActivity(reviewActivityIntent);
+            }
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        if(reviewActivityIntent.resolveActivity(getPackageManager()) != null) {
-            startActivity(reviewActivityIntent);
-        }
     }
 
     /**
-     * onClick Handler for buttons, except the buttons to watch trailers.
-     *
-     * @param button The Button View that was clicked.
+     * Restores views from the ViewModel after device rotation.
      */
-    @Override
-    public void onClick(View button) {
-        int id = button.getId();
+    private void restoreFromViewModel() {
+        Log.d(TAG, "Restoring views from ViewModel");
+        mMovieId = mViewModel.getMovieId();
+        mMovieTitle = mViewModel.getMovieTitle();
+        mPosterByteArray = mViewModel.getPosterByteArray();
+        mMovieReleaseDate = mViewModel.getMovieReleaseDate();
+        mMovieRuntime = mViewModel.getMovieRuntime();
+        mMovieOverview = mViewModel.getMovieOverview();
+        mMovieVote = mViewModel.getMovieVote();
+        mIsFavoriteMovie = mViewModel.isFavoriteMovie();
+        mMovieTrailerUris = mViewModel.getMovieTrailerUris();
+        mMovieReviews = mViewModel.getMovieReviews();
+        hideReviews();
+        updateMovieDetailViews();
+        updateMovieTrailerViews();
+        updateMovieReviewViews();
+        updateFabDrawable();
+    }
 
-        if(id == mButtonShowReviews.getId()) {
-            mButtonShowReviews.setVisibility(View.GONE);
-            mReviewRecycler.setVisibility(View.VISIBLE);
-            mReviewsLabel.setVisibility(View.VISIBLE);
-            new FetchMovieReviews().execute(mMovieId);
+    /**
+     * Updates the views relating to movie details (title, runtime, overview, etc.)
+     * with current data.
+     */
+    public void updateMovieDetailViews() {
+        if(mMovieTitle != null) {
+            setTitle(mMovieTitle);
         }
-        else if(id == mButtonTrailer1.getId()) {
-
+        if(mPosterByteArray != null) {
+            int imageSize = mPosterByteArray.length;
+            Bitmap posterBitmap = BitmapFactory.decodeByteArray(mPosterByteArray, 0, imageSize);
+            mPosterDisplay.setImageBitmap(posterBitmap);
         }
-        else if(id == mButtonTrailer2.getId()) {
-
+        if(mMovieReleaseDate != null) {
+            String releaseYear = mMovieReleaseDate.substring(0, 4);
+            mReleaseDisplay.setText(releaseYear);
         }
-        else if(id == mButtonTrailer3.getId()) {
-
+        if(mMovieRuntime != null) {
+            String runtimeFormatted = getString(R.string.movie_runtime, mMovieRuntime);
+            mRuntimeDisplay.setText(runtimeFormatted);
         }
-        else if(id == fab.getId()) {
-            toggleFavorite();
+        if(mMovieVote != null) {
+            String voteFormatted = getString(R.string.movie_vote, mMovieVote);
+            mVoteDisplay.setText(voteFormatted);
+        }
+        if(mMovieOverview != null) {
+            mOverviewDisplay.setText(mMovieOverview);
         }
     }
 
     /**
-     * Adds a movie to favorite if it is not. Removes a movie from favorites if it is.
+     * Updates views relating to movie trailers (trailer buttons)
+     * with current data.
+     */
+    private void updateMovieTrailerViews() {
+        if(mMovieTrailerUris != null) {
+            if (mMovieTrailerUris.size() == 0) {
+                mNoTrailers.setVisibility(View.VISIBLE);
+            } else {
+                mNoTrailers.setVisibility(View.INVISIBLE);
+                mButtonTrailer1.setVisibility(View.VISIBLE);
+                mButtonTrailer1.setOnClickListener(this);
+                if (mMovieTrailerUris.size() >= 2) {
+                    mButtonTrailer2.setVisibility(View.VISIBLE);
+                    mButtonTrailer2.setOnClickListener(this);
+                }
+                if (mMovieTrailerUris.size() >= 3) {
+                    mButtonTrailer3.setVisibility(View.VISIBLE);
+                    mButtonTrailer3.setOnClickListener(this);
+                }
+            }
+        }
+        else {
+            mNoTrailers.setVisibility(View.VISIBLE);
+        }
+    }
+
+    /**
+     * Updates views relating to movie reviews (review button, adapter, etc.)
+     * with current data.
+     */
+    private void updateMovieReviewViews() {
+        if ((mMovieReviews != null) && (mMovieReviews.length() > 0)) {
+            mNoReviews.setVisibility(View.GONE);
+            mReviewAdapter.setMovieReviews(mMovieReviews);
+        }
+        else {
+            mNoReviews.setVisibility(View.VISIBLE);
+        }
+    }
+
+    /**
+     * Starts an intent to play the movie trailer.
+     * @param trailerUri The movie trailer Uri, typically a website url.
+     */
+    private void playTrailer(Uri trailerUri) {
+        Intent playTrailerIntent = new Intent(Intent.ACTION_VIEW);
+        playTrailerIntent.setData(trailerUri);
+        if(playTrailerIntent.resolveActivity(getPackageManager()) != null) {
+            startActivity(playTrailerIntent);
+        }
+    }
+
+    /**
+     * Shows movie reviews by updating related view visibility and triggering an AsyncTask
+     * to fetch the reviews.
+     */
+    private void showReviews() {
+        mButtonShowReviews.setVisibility(View.GONE);
+        mReviewRecycler.setVisibility(View.VISIBLE);
+        mReviewsLabel.setVisibility(View.VISIBLE);
+        new FetchMovieReviews().execute(mMovieId);
+    }
+
+    /**
+     * Hides the movie reviews by updating related view visibility.
+     */
+    private void hideReviews() {
+        mButtonShowReviews.setVisibility(View.VISIBLE);
+        mReviewRecycler.setVisibility(View.GONE);
+        mReviewsLabel.setVisibility(View.GONE);
+    }
+
+    /**
+     * The FAB drawable indicates whether a movie is marked as favorite or not. This function
+     * updates the drawable to represent the current state.
+     */
+    public void updateFabDrawable() {
+        if(mIsFavoriteMovie)
+            fab.setImageDrawable(getDrawable(android.R.drawable.btn_star_big_on));
+        else
+            fab.setImageDrawable(getDrawable(android.R.drawable.btn_star_big_off));
+    }
+
+    /**
+     * Adds a movie to favorites if it has not been added or removes it if it has.
      */
     public void toggleFavorite() {
         if(mMovieId == 0)
@@ -215,35 +318,46 @@ public class MovieDetailActivity extends AppCompatActivity implements ReviewAdap
         new Thread(new Runnable() {
             @Override
             public void run() {
-                if(mMovieIsFavorite) {
+                String logMsg;
+                if(mIsFavoriteMovie) {
                     db.movieDao().deleteFavorite(movie);
-                    mMovieIsFavorite = false;
-                    String logMsg = String.format("Removed from favorites (movie id: %s)", movieIdString);
-                    Log.d(TAG, logMsg);
+                    mIsFavoriteMovie = false;
+                    logMsg = String.format("Removed movie from favorites (id: %s)", movieIdString);
                 }
                 else {
                     db.movieDao().addFavorite(movie);
-                    mMovieIsFavorite = true;
-                    String logMsg = String.format("Added to favorites (movie id: %s)", movieIdString);
-                    Log.d(TAG, logMsg);
+                    mIsFavoriteMovie = true;
+                    logMsg = String.format("Added movie to favorites (id: %s)", movieIdString);
                 }
+                Log.d(TAG, logMsg);
+                mViewModel.setFavoriteMovie(mIsFavoriteMovie);
                 updateFabDrawable();
             }
         }).start();
     }
 
+    /**
+     * AsyncTask that uses the best source for movie get the movie information for the UI.
+     * i.e. from the network if available, otherwise from the local database if available.
+     */
     private class PopulateUI extends AsyncTask<Integer, Void, Void> {
 
         @Override
         protected Void doInBackground(Integer... movieId) {
             FavoritesDB db = FavoritesDB.getInstance(getApplicationContext());
+            String movieIdString = Integer.toString(mMovieId);
+            String logMsg;
             if(!db.movieDao().getFavorite(movieId[0]).isEmpty()) {
-                mMovieIsFavorite = true;
-                updateFabDrawable();
-                String movieIdString = Integer.toString(mMovieId);
-                String logMsg = String.format("Movie %s is in favorites database", movieIdString);
-                Log.d(TAG, logMsg);
+                mIsFavoriteMovie = true;
+                logMsg = String.format("Movie %s is in favorites", movieIdString);
             }
+            else {
+                mIsFavoriteMovie = false;
+                logMsg = String.format("Movie %s is NOT in favorites", movieIdString);
+            }
+            Log.d(TAG, logMsg);
+            updateFabDrawable();
+            mViewModel.setFavoriteMovie(mIsFavoriteMovie);
             return null;
         }
 
@@ -253,6 +367,8 @@ public class MovieDetailActivity extends AppCompatActivity implements ReviewAdap
             Intent intent = getIntent();
             if(intent.hasExtra(MovieDBUtils.PARAM_POSTER_BYTE))
                 mPosterByteArray = intent.getByteArrayExtra(MovieDBUtils.PARAM_POSTER_BYTE);
+
+            mViewModel.setPosterByteArray(mPosterByteArray);
             /*
              * Movie details will be loaded from network when network is available.
              * If network is not available, we'll try to load local data, such as from the
@@ -262,16 +378,25 @@ public class MovieDetailActivity extends AppCompatActivity implements ReviewAdap
                 new FetchMovieDetails().execute(mMovieId);
                 new FetchMovieTrailers().execute(mMovieId);
             }
-            else if (mMovieIsFavorite) {
-                if(intent.hasExtra(MovieDBUtils.PARAM_TITLE))
+            else if (mIsFavoriteMovie) {
+                if(intent.hasExtra(MovieDBUtils.PARAM_TITLE)) {
                     mMovieTitle = intent.getStringExtra(MovieDBUtils.PARAM_TITLE);
-                if(intent.hasExtra(MovieDBUtils.PARAM_RELEASE))
+                    mViewModel.setMovieTitle(mMovieTitle);
+                }
+                if(intent.hasExtra(MovieDBUtils.PARAM_RELEASE)) {
                     mMovieReleaseDate = intent.getStringExtra(MovieDBUtils.PARAM_RELEASE);
-                if(intent.hasExtra(MovieDBUtils.PARAM_RUNTIME))
+                    mViewModel.setMovieReleaseDate(mMovieReleaseDate);
+                }
+                if(intent.hasExtra(MovieDBUtils.PARAM_RUNTIME)) {
                     mMovieRuntime = intent.getStringExtra(MovieDBUtils.PARAM_RUNTIME);
-                if(intent.hasExtra(MovieDBUtils.PARAM_OVERVIEW))
+                    mViewModel.setMovieRuntime(mMovieRuntime);
+                }
+                if(intent.hasExtra(MovieDBUtils.PARAM_OVERVIEW)) {
                     mMovieOverview = intent.getStringExtra(MovieDBUtils.PARAM_OVERVIEW);
-                setViewContent();
+                    mViewModel.setMovieOverview(mMovieOverview);
+                }
+                updateMovieDetailViews();
+                updateMovieTrailerViews();
                 String toastMsg = getString(R.string.error_no_network);
                 makeText(getApplicationContext(), toastMsg, Toast.LENGTH_SHORT).show();
             }
@@ -284,27 +409,19 @@ public class MovieDetailActivity extends AppCompatActivity implements ReviewAdap
     }
 
     /**
-     * The FAB drawable indicates whether a movie is marked as favorite or not. This function
-     * updates the drawable to represent the current state.
+     * AsyncTask that fetches movie details over the network.
      */
-    public void updateFabDrawable() {
-        if(mMovieIsFavorite)
-            fab.setImageDrawable(getDrawable(android.R.drawable.btn_star_big_on));
-        else
-            fab.setImageDrawable(getDrawable(android.R.drawable.btn_star_big_off));
-    }
-
     public class FetchMovieDetails extends AsyncTask<Integer, Void, JSONObject> {
 
         @Override
         protected JSONObject doInBackground(Integer... movieID) {
+            Log.d(TAG, "Fetching movie details...");
             return MovieDBUtils.getMovieDetailsJson(movieID[0]);
         }
 
         @Override
         protected void onPostExecute(JSONObject movieDetailsJson) {
             super.onPostExecute(movieDetailsJson);
-            //mLoadingIndicator.setVisibility(View.INVISIBLE);
             if(movieDetailsJson == null) {
                 String toastMsg = getString(R.string.error_movie_details);
                 makeText(getApplicationContext(), toastMsg, Toast.LENGTH_LONG).show();
@@ -317,17 +434,26 @@ public class MovieDetailActivity extends AppCompatActivity implements ReviewAdap
                 mMovieRuntime = movieDetailsJson.getString(MovieDBUtils.PARAM_RUNTIME);
                 mMovieVote = movieDetailsJson.getString(MovieDBUtils.PARAM_VOTES);
                 mMovieOverview = movieDetailsJson.getString(MovieDBUtils.PARAM_OVERVIEW);
+                mViewModel.setMovieTitle(mMovieTitle);
+                mViewModel.setMovieReleaseDate(mMovieReleaseDate);
+                mViewModel.setMovieRuntime(mMovieRuntime);
+                mViewModel.setMovieVote(mMovieVote);
+                mViewModel.setMovieOverview(mMovieOverview);
+                updateMovieDetailViews();
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-            setViewContent();
         }
     }
 
+    /**
+     * AsyncTask that fetches movie trailer URIs over the network
+     */
     public class FetchMovieTrailers extends AsyncTask<Integer, Void, ArrayList<Uri>> {
 
         @Override
         protected ArrayList<Uri> doInBackground(Integer... movieID) {
+            Log.d(TAG, "Fetching movie trailers...");
             return MovieDBUtils.getMovieTrailerUriList(movieID[0]);
         }
 
@@ -339,47 +465,20 @@ public class MovieDetailActivity extends AppCompatActivity implements ReviewAdap
                 makeText(getApplicationContext(), toastMsg, Toast.LENGTH_LONG).show();
                 return;
             }
-            View.OnClickListener trailerButtonClickListener = new View.OnClickListener() {
-                @Override
-                public void onClick(View trailerButton) {
-                    Intent playTrailerIntent = new Intent(Intent.ACTION_VIEW);
-                    if(trailerButton == mButtonTrailer1)
-                        playTrailerIntent.setData(movieTrailerUris.get(0));
-                    else if(trailerButton == mButtonTrailer2)
-                        playTrailerIntent.setData(movieTrailerUris.get(1));
-                    else if(trailerButton == mButtonTrailer3)
-                        playTrailerIntent.setData(movieTrailerUris.get(2));
-                    else
-                        return;
-                    if(playTrailerIntent.resolveActivity(getPackageManager()) != null) {
-                        startActivity(playTrailerIntent);
-                    }
-                }
-            };
-            if(movieTrailerUris.size() == 0) {
-                mNoTrailers.setVisibility(View.VISIBLE);
-            }
-            else {
-                if(movieTrailerUris.size() >= 1) {
-                    mButtonTrailer1.setVisibility(View.VISIBLE);
-                    mButtonTrailer1.setOnClickListener(trailerButtonClickListener);
-                }
-                if(movieTrailerUris.size() >= 2) {
-                    mButtonTrailer2.setVisibility(View.VISIBLE);
-                    mButtonTrailer2.setOnClickListener(trailerButtonClickListener);
-                }
-                if(movieTrailerUris.size() >= 3) {
-                    mButtonTrailer3.setVisibility(View.VISIBLE);
-                    mButtonTrailer3.setOnClickListener(trailerButtonClickListener);
-                }
-            }
+            mMovieTrailerUris = movieTrailerUris;
+            mViewModel.setMovieTrailerUris(mMovieTrailerUris);
+            updateMovieTrailerViews();
         }
     }
 
+    /**
+     * AsyncTask that fetches movie reviews over the network.
+     */
     public class FetchMovieReviews extends AsyncTask<Integer, Void, JSONObject> {
 
         @Override
         protected JSONObject doInBackground(Integer... movieID) {
+            Log.d(TAG, "Fetching movie reviews...");
             return MovieDBUtils.getMovieReviewsJson(movieID[0]);
         }
 
@@ -392,16 +491,10 @@ public class MovieDetailActivity extends AppCompatActivity implements ReviewAdap
                 return;
             }
 
-            JSONArray results;
             try {
-                results = movieReviewsJson.getJSONArray(MovieDBUtils.PARAM_RESULTS);
-                if(results.length() > 0) {
-                    mNoReviews.setVisibility(View.GONE);
-                    mReviewAdapter.setMovieReviews(results);
-                }
-                else {
-                    mNoReviews.setVisibility(View.VISIBLE);
-                }
+                mMovieReviews = movieReviewsJson.getJSONArray(MovieDBUtils.PARAM_RESULTS);
+                mViewModel.setMovieReviews(mMovieReviews);
+                updateMovieReviewViews();
             } catch (JSONException e) {
                 e.printStackTrace();
             }

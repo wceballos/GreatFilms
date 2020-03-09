@@ -2,12 +2,8 @@ package com.example.greatfilms;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.lifecycle.LiveData;
 import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModel;
-import androidx.lifecycle.ViewModelProvider;
 import androidx.lifecycle.ViewModelProviders;
-import androidx.lifecycle.ViewModelStoreOwner;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -25,11 +21,11 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.example.greatfilms.Adapters.MovieAdapter;
-import com.example.greatfilms.Favorites.FavoritesDB;
 import com.example.greatfilms.Favorites.FavoritesDBUtils;
 import com.example.greatfilms.Favorites.MovieEntity;
 import com.example.greatfilms.NetworkUtils.Network;
 import com.example.greatfilms.TheMovieDB.MovieDBUtils;
+import com.example.greatfilms.ViewModels.MainViewModel;
 
 import org.json.JSONArray;
 import org.json.JSONException;
