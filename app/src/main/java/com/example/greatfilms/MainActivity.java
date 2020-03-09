@@ -159,10 +159,6 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
                 intentToStartDetailActivity
                         .putExtra(MovieDBUtils.PARAM_OVERVIEW, movie.getString(MovieDBUtils.PARAM_OVERVIEW));
             }
-            if(movie.has(MovieDBUtils.PARAM_LOCAL_DATA)) {
-                intentToStartDetailActivity
-                        .putExtra(MovieDBUtils.PARAM_LOCAL_DATA, movie.getBoolean(MovieDBUtils.PARAM_LOCAL_DATA));
-            }
         } catch (JSONException e) {
             e.printStackTrace();
         }

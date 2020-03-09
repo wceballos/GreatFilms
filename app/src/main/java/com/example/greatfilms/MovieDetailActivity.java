@@ -64,6 +64,8 @@ public class MovieDetailActivity extends AppCompatActivity implements ReviewAdap
 
     boolean mMovieIsFavorite;
 
+    final String TAG = MovieDetailActivity.class.getSimpleName();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -97,48 +99,15 @@ public class MovieDetailActivity extends AppCompatActivity implements ReviewAdap
         Intent intent = getIntent();
 
         if(intent != null) {
-            if(intent.hasExtra(MovieDBUtils.PARAM_POSTER_BYTE))
-                mPosterByteArray = intent.getByteArrayExtra(MovieDBUtils.PARAM_POSTER_BYTE);
             if(intent.hasExtra(MovieDBUtils.PARAM_ID))
                 mMovieId = intent.getIntExtra(MovieDBUtils.PARAM_ID, 0);
-            if(intent.hasExtra(MovieDBUtils.PARAM_LOCAL_DATA)) {
-                mMovieIsFavorite = true;
-                updateFabDrawable();
-            }
 
             /*
              * For some reason toolbar title needs to be nullified before changing it to
              * the actual movie title
              */
             setTitle(null);
-
-            /*
-             * Movie details will be loaded from network when network is available.
-             * If network is not available, we'll try to load local data, such as from the
-             * favorite movie database.
-             */
-            if(Network.isNetworkAvailable(this)) {
-                new FetchMovieDetails().execute(mMovieId);
-                new FetchMovieTrailers().execute(mMovieId);
-            }
-            else if (mMovieIsFavorite) {
-                if(intent.hasExtra(MovieDBUtils.PARAM_TITLE))
-                    mMovieTitle = intent.getStringExtra(MovieDBUtils.PARAM_TITLE);
-                if(intent.hasExtra(MovieDBUtils.PARAM_RELEASE))
-                    mMovieReleaseDate = intent.getStringExtra(MovieDBUtils.PARAM_RELEASE);
-                if(intent.hasExtra(MovieDBUtils.PARAM_RUNTIME))
-                    mMovieRuntime = intent.getStringExtra(MovieDBUtils.PARAM_RUNTIME);
-                if(intent.hasExtra(MovieDBUtils.PARAM_OVERVIEW))
-                    mMovieOverview = intent.getStringExtra(MovieDBUtils.PARAM_OVERVIEW);
-                setViewContent();
-                String toastMsg = getString(R.string.error_no_network);
-                makeText(getApplicationContext(), toastMsg, Toast.LENGTH_SHORT).show();
-            }
-            else {
-                String toastMsg = getString(R.string.error_no_network);
-                makeText(getApplicationContext(), toastMsg, Toast.LENGTH_SHORT).show();
-                finish();
-            }
+            new PopulateUI().execute(mMovieId);
 
         } // if(intent != null)
     }
@@ -241,31 +210,77 @@ public class MovieDetailActivity extends AppCompatActivity implements ReviewAdap
                 mMovieRuntime,
                 mMovieOverview,
                 null);
-        final String movieId = Integer.valueOf(movie.getId()).toString();
+        final String movieIdString = Integer.valueOf(movie.getId()).toString();
 
-        new AsyncTask<Void, Void, Void>() {
-
+        new Thread(new Runnable() {
             @Override
-            protected Void doInBackground(Void... voids) {
+            public void run() {
                 if(mMovieIsFavorite) {
                     db.movieDao().deleteFavorite(movie);
                     mMovieIsFavorite = false;
-                    Log.d(MovieDetailActivity.class.getSimpleName(), "Unfavorite movie id: " + movieId);
+                    String logMsg = String.format("Removed from favorites (movie id: %s)", movieIdString);
+                    Log.d(TAG, logMsg);
                 }
                 else {
                     db.movieDao().addFavorite(movie);
                     mMovieIsFavorite = true;
-                    Log.d(MovieDetailActivity.class.getSimpleName(), "Favorite movie id: " + movieId);
+                    String logMsg = String.format("Added to favorites (movie id: %s)", movieIdString);
+                    Log.d(TAG, logMsg);
                 }
-                return null;
-            }
-
-            @Override
-            protected void onPostExecute(Void aVoid) {
-                super.onPostExecute(aVoid);
                 updateFabDrawable();
             }
-        }.execute();
+        }).start();
+    }
+
+    private class PopulateUI extends AsyncTask<Integer, Void, Void> {
+
+        @Override
+        protected Void doInBackground(Integer... movieId) {
+            FavoritesDB db = FavoritesDB.getInstance(getApplicationContext());
+            if(!db.movieDao().getFavorite(movieId[0]).isEmpty()) {
+                mMovieIsFavorite = true;
+                updateFabDrawable();
+                String movieIdString = Integer.toString(mMovieId);
+                String logMsg = String.format("Movie %s is in favorites database", movieIdString);
+                Log.d(TAG, logMsg);
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            Intent intent = getIntent();
+            if(intent.hasExtra(MovieDBUtils.PARAM_POSTER_BYTE))
+                mPosterByteArray = intent.getByteArrayExtra(MovieDBUtils.PARAM_POSTER_BYTE);
+            /*
+             * Movie details will be loaded from network when network is available.
+             * If network is not available, we'll try to load local data, such as from the
+             * favorite movie database.
+             */
+            if(Network.isNetworkAvailable(getApplicationContext())) {
+                new FetchMovieDetails().execute(mMovieId);
+                new FetchMovieTrailers().execute(mMovieId);
+            }
+            else if (mMovieIsFavorite) {
+                if(intent.hasExtra(MovieDBUtils.PARAM_TITLE))
+                    mMovieTitle = intent.getStringExtra(MovieDBUtils.PARAM_TITLE);
+                if(intent.hasExtra(MovieDBUtils.PARAM_RELEASE))
+                    mMovieReleaseDate = intent.getStringExtra(MovieDBUtils.PARAM_RELEASE);
+                if(intent.hasExtra(MovieDBUtils.PARAM_RUNTIME))
+                    mMovieRuntime = intent.getStringExtra(MovieDBUtils.PARAM_RUNTIME);
+                if(intent.hasExtra(MovieDBUtils.PARAM_OVERVIEW))
+                    mMovieOverview = intent.getStringExtra(MovieDBUtils.PARAM_OVERVIEW);
+                setViewContent();
+                String toastMsg = getString(R.string.error_no_network);
+                makeText(getApplicationContext(), toastMsg, Toast.LENGTH_SHORT).show();
+            }
+            else {
+                String toastMsg = getString(R.string.error_no_network);
+                makeText(getApplicationContext(), toastMsg, Toast.LENGTH_SHORT).show();
+                finish();
+            }
+        }
     }
 
     /**
