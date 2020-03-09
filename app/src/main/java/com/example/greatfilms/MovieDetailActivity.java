@@ -180,7 +180,6 @@ public class MovieDetailActivity extends AppCompatActivity
         hideReviews();
         updateMovieDetailViews();
         updateMovieTrailerViews();
-        updateMovieReviewViews();
         updateFabDrawable();
     }
 
@@ -219,7 +218,7 @@ public class MovieDetailActivity extends AppCompatActivity
      * with current data.
      */
     private void updateMovieTrailerViews() {
-        if(mMovieTrailerUris != null) {
+        if (mMovieTrailerUris != null) {
             if (mMovieTrailerUris.size() == 0) {
                 mNoTrailers.setVisibility(View.VISIBLE);
             } else {
@@ -250,9 +249,8 @@ public class MovieDetailActivity extends AppCompatActivity
             mNoReviews.setVisibility(View.GONE);
             mReviewAdapter.setMovieReviews(mMovieReviews);
         }
-        else {
+        else
             mNoReviews.setVisibility(View.VISIBLE);
-        }
     }
 
     /**
