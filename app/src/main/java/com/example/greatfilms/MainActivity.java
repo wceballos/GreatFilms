@@ -4,6 +4,10 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModel;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.lifecycle.ViewModelProviders;
+import androidx.lifecycle.ViewModelStoreOwner;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -81,19 +85,15 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
     }
 
     public void retrieveFavorites() {
-        final LiveData<List<MovieEntity>> movies = FavoritesDB
-                .getInstance(getApplicationContext())
-                .movieDao()
-                .loadAllFavorites();
-        mFavoriteMoviesJson = FavoritesDBUtils.dbEntriesToJson(movies.getValue());
-        movies.observe(this, new Observer<List<MovieEntity>>() {
+        MainViewModel viewModel = ViewModelProviders.of(this).get(MainViewModel.class);
+        viewModel.getMovies().observe(this, new Observer<List<MovieEntity>>() {
             @Override
             public void onChanged(List<MovieEntity> movieEntities) {
-                mFavoriteMoviesJson = FavoritesDBUtils.dbEntriesToJson(movieEntities);
-                if(mSortSetting.equals(SHOW_FAVORITES)) {
-                    Log.d(TAG, "Receiving database update from LiveData");
-                    loadMovieGrid(mSortSetting);
-                }
+            mFavoriteMoviesJson = FavoritesDBUtils.dbEntriesToJson(movieEntities);
+            if(mSortSetting.equals(SHOW_FAVORITES)) {
+                Log.d(TAG, "Receiving database update from LiveData");
+                loadMovieGrid(mSortSetting);
+            }
             }
         });
     }

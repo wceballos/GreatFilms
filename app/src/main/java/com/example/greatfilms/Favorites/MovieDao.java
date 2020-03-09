@@ -19,7 +19,7 @@ public interface MovieDao {
     @Query("SELECT * FROM movie WHERE id = :id")
     List<MovieEntity> getFavorite(int id);
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     void addFavorite(MovieEntity movieEntity);
 
     @Update(onConflict = OnConflictStrategy.REPLACE)
